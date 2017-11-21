@@ -74,11 +74,10 @@ void read_in_expression(char * filename) {
 	LOG(INFO) << "Testing...";
 	unordered_map<int, bool> vals;
 
-	vals[1]=false;
-	vals[2]=false;
-	vals[3]=true;
-
-	for(int i=0; i< num_of_vars; ++i) {
+	bool flip=true;
+	for(int i=1; i<= num_of_vars; ++i) {
+		vals[i]= flip;
+		flip=!flip;
 		vals[-i]=!vals[i];
 	}
 

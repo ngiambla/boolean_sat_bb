@@ -15,9 +15,12 @@ void Expression::eval_expression(unordered_map<int, bool> vals) {
 			if(vals.count(var)>0) {
 				if(init) {
 					res=vals[var];
+					init=!init;
 				} else {
 					res=res || vals[var]; 
 				}
+			} else {
+				LOG(INFO) << "Found outlier: "<< var;
 			}
 		}
 		LOG(INFO)<<"Clause: "<< res;		
