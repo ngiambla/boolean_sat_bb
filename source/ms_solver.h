@@ -8,6 +8,7 @@ class MS_Solver {
 	private:
 		//vector< vector<int> > expression;	//hold expression
 		unordered_map<int, bool> vars_to_vals_map;		// to be used for the treee structure;
+		unordered_map<int, bool> vars_used_map;
 
 		Expression expr;
 
@@ -16,6 +17,8 @@ class MS_Solver {
 
 		int lb;			//lower bound
 		int ub;			//upper bound
+
+		int select_start();
 
 
 	public:

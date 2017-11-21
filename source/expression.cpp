@@ -21,9 +21,10 @@ int Expression::eval_expression(unordered_map<int, bool> vals) {
 				} else {
 					res=res || vals[var]; 
 				}
-			} else {
-				LOG(ERROR) << "Found outlier: "<< var;
-				exit(-1);
+				if(res) {
+					LOG(INFO) << "breaking.";
+					break;
+				}
 			}
 		}
 		LOG(INFO)<<"Clause: "<< res;

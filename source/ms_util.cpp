@@ -72,6 +72,9 @@ void read_in_expression(char * filename) {
 	LOG(INFO) << "Inserting into expression.";
 
 	expr.init_expression(clauses);
+	
+	LOG(INFO) << "Initializing Solver.";
+
 	mss.init_solver(expr, num_of_clauses, num_of_vars);
 
 }

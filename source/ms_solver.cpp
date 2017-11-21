@@ -9,13 +9,20 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 	ub=0;
 
 	this->expr=expr;
-	
+
 	for(int i=1; i<=num_of_vars; ++i) {
-		vars_to_vals_map[i]=false;
-		vars_to_vals_map[-i]=!vars_to_vals_map[i];
+		vars_used_map[i]  = false;
+		vars_used_map[-i] = false;
 	}
 
 	LOG(INFO) << "We are here";
+}
+
+int MS_Solver::select_start() {
+	int index=1;					// hard coding for now.
+	LOG(INFO) << "~ Searching...";
+	LOG(INFO) << "~ * Found * ";
+	return index;
 }
 
 
@@ -56,34 +63,45 @@ void MS_Solver::search() {
 	bool searching=true;
 
 	//1. start somewhere
-		compute_upper_bound();
-		compute_lower_bound();
-	
-		Node * CUR = new Node;
-		CUR->init_node(NULL, 0, 0, false);
+	LOG(INFO) << "Starting to Solve.";
 
-		CUR->whoami();
+	int id=select_start();
+
+	compute_upper_bound();
+	compute_lower_bound();
+
+
+
+	Node * HEAD  = new Node;
+	Node * CUR = HEAD;
+
+	Node * CUR_P;
+
+	CUR->init_node(NULL, 0, id, false);
+	CUR->whoami();
+
+
 
 	//2. begin expanding out.
 
 		while(searching) {
-			Node * new_left = new Node;
-			Node * new_right = new Node;
+			CUR_P=CUR;
+			for(const auto& key : vars_used_map) {
+				if(!key.second) {
+					Node * left_child = new Node;
+					left_child->init_node(CUR_P, 1, key.first, false);
+					left_child->whoami();
 
-			new_left->init_node(CUR, 0, 2, false);
-			new_right->init_node(CUR, 1, 3, false);
+					Node * right_child = new Node;
+					right_child->init_node(CUR_P, 1, key.first, true);
+					right_child->whoami();
 
-			CUR->set_lh_child(new_left);
-			CUR->set_rh_child(new_right);
-
-			CUR=CUR->get_lh_child();
-			CUR->whoami();
-
-			CUR=CUR->get_parent();
-			CUR->whoami();
-			
-			CUR=CUR->get_rh_child();
-			CUR->whoami();
+					CUR_P->set_rh_child(right_child);
+					CUR_P->set_lh_child(left_child);
+					vars_used_map[key.first]=true;
+					break;
+				}
+			}
 			break;
 		}
 

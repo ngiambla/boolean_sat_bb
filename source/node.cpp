@@ -31,5 +31,5 @@ void Node::set_rh_child(Node * right_child) {
 }
 
 void Node::whoami() {
-	printf("~ Hello: I am Node[%02x]:[%02x]\n", id, cost);
+	printf("+ Node[%02x]:[%02x]\n+----isTrue: [%d]\n\n", id, cost, truth_val);
 }
