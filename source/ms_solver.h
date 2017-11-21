@@ -5,6 +5,8 @@ class MS_Solver {
 	private:
 		vector< vector<int> > expression;
 		// to fill with a tree structure?
+		int lb;
+		int ub;
 
 	public:
 		MS_Solver(){};
@@ -14,8 +16,8 @@ class MS_Solver {
 		int compute_upper_bound();
 		int compute_lower_bound();
 
-		void update_upper_bound();
-		void update_lower_bound();
+		void update_upper_bound(int lb);
+		void update_lower_bound(int ub);
 
 		void search();
 
