@@ -2,6 +2,7 @@
 #define __MS_SOLVER_H__
 
 #include "expression.h"
+#include "node.h"
 
 class MS_Solver {
 	private:

@@ -21,8 +21,8 @@ else
 endif
 
 
-$(EXE): expression.o ms_solver.o ms_util.o 
-	g++ $(FLAGS) expression.o ms_solver.o ms_util.o $(GRAPHICS_LIBS) -o $(EXE)
+$(EXE): expression.o node.o ms_solver.o ms_util.o
+	g++ $(FLAGS) expression.o node.o ms_solver.o ms_util.o $(GRAPHICS_LIBS) -o $(EXE)
 
 expression.o: expression.cpp $(HDR)
 	g++ -c $(FLAGS) expression.cpp
@@ -32,6 +32,9 @@ ms_util.o: ms_util.cpp $(HDR)
 
 ms_solver.o: ms_solver.cpp $(HDR)
 	g++ -c $(FLAGS) ms_solver.cpp
+
+node.o: node.cpp $(HDR)
+	g++ -c $(FLAGS) node.cpp
 
 clean:
 	rm $(EXE) *.o

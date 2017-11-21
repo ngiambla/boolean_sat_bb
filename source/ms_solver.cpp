@@ -39,6 +39,7 @@ int MS_Solver::compute_lower_bound() {
 
 
 int MS_Solver::compute_upper_bound() {
+	LOG(DEBUG) << " [computer_upper_bound] not yet implemented.";
 	return ub;
 }
 
@@ -52,13 +53,39 @@ void MS_Solver::update_upper_bound(int ub) {
 
 
 void MS_Solver::search() {
+	bool searching=true;
+
 	//1. start somewhere
 		compute_upper_bound();
 		compute_lower_bound();
 	
+		Node * CUR = new Node;
+		CUR->init_node(NULL, 0, 0, false);
 
+		CUR->whoami();
 
 	//2. begin expanding out.
+
+		while(searching) {
+			Node * new_left = new Node;
+			Node * new_right = new Node;
+
+			new_left->init_node(CUR, 0, 2, false);
+			new_right->init_node(CUR, 1, 3, false);
+
+			CUR->set_lh_child(new_left);
+			CUR->set_rh_child(new_right);
+
+			CUR=CUR->get_lh_child();
+			CUR->whoami();
+
+			CUR=CUR->get_parent();
+			CUR->whoami();
+			
+			CUR=CUR->get_rh_child();
+			CUR->whoami();
+			break;
+		}
 
 	//3. check the nodes.
 
