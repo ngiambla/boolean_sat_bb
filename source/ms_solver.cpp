@@ -20,6 +20,20 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 
 
 int MS_Solver::compute_lower_bound() {
+	unordered_map<int, int> var_to_count_map;	//_t == temporary
+
+	for(vector<int> clause : expr.get_vector_expression()){
+		for(int var : clause) {
+			if(var_to_count_map.count(var) > 0) {
+				var_to_count_map[var]++;
+			} else {
+				var_to_count_map[var]=1;				
+			}
+		}
+	}
+	for(const auto& key : var_to_count_map) {
+		LOG(INFO) << " Var [" << key.first << "] occurs: ["<< key.second <<"]";
+	}
 	return lb;
 }
 
@@ -42,7 +56,7 @@ void MS_Solver::search() {
 		compute_upper_bound();
 		compute_lower_bound();
 	
-		
+
 
 	//2. begin expanding out.
 
@@ -51,4 +65,6 @@ void MS_Solver::search() {
 	//go to 2, until done;
 
 	LOG(INFO) << "Maximum Number of True Clauses: " << expr.eval_expression(vars_to_vals_map)<<"/"<<num_of_clauses;
+
+	LOG(INFO) << "?!";
 }

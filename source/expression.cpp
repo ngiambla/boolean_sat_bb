@@ -33,3 +33,8 @@ int Expression::eval_expression(unordered_map<int, bool> vals) {
 	}
 	return how_many_are_true;
 }
+
+
+vector< vector<int> > Expression::get_vector_expression() {
+	return expression;
+}
