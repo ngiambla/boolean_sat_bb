@@ -105,7 +105,7 @@ int main(int argc, char * argv[]) {
 	strcat(file, argv[2]);
 
 	read_in_expression(file);
-
+	
 
 	return SUCCESS;
 }

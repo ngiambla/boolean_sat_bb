@@ -7,7 +7,6 @@
 class Expression {
 
 	private:
-		bool is_true;
 		vector< vector<int> > expression;
 	public:
 		Expression(){};												//to instantiate empty object;
