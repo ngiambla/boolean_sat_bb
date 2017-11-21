@@ -7,7 +7,9 @@ void Expression::init_expression(vector< vector<int> > expr) {
 
 
 
-void Expression::eval_expression(unordered_map<int, bool> vals) {
+int Expression::eval_expression(unordered_map<int, bool> vals) {
+	int how_many_are_true=0;
+
 	for(vector<int> c : expression) {
 		bool init=true;
 		bool res;
@@ -20,9 +22,14 @@ void Expression::eval_expression(unordered_map<int, bool> vals) {
 					res=res || vals[var]; 
 				}
 			} else {
-				LOG(INFO) << "Found outlier: "<< var;
+				LOG(ERROR) << "Found outlier: "<< var;
+				exit(-1);
 			}
 		}
-		LOG(INFO)<<"Clause: "<< res;		
+		LOG(INFO)<<"Clause: "<< res;
+		if(res) {
+			how_many_are_true++;
+		}
 	}
+	return how_many_are_true;
 }

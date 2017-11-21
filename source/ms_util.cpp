@@ -2,11 +2,12 @@
 #include <iostream>
 #include <string.h>
 #include "graphics.h"
-#include "expression.h"
+#include "ms_solver.h"
 
-char * cmd_list="Usage ./ms_util -file [filename]";
+char cmd_list[]="Usage ./ms_util -file [filename]";
 
 Expression expr;
+MS_Solver mss;
 
 void read_in_expression(char * filename) {
 	FILE *fp;
@@ -62,27 +63,16 @@ void read_in_expression(char * filename) {
 
 	LOG(INFO) << "Confirming file read was successful: ";
 	for(vector<int> v : clauses ) {
-		LOG(INFO) << "Clause: ";
+		printf("Clause: ");
 		for(int var : v) {
-			LOG(INFO) << "["<<var<<"]";
+			printf(" [%2d]",var);
 		}
 		printf("\n");
 	}
 	LOG(INFO) << "Inserting into expression.";
+
 	expr.init_expression(clauses);
-
-	LOG(INFO) << "Testing...";
-	unordered_map<int, bool> vals;
-
-	bool flip=true;
-	for(int i=1; i<= num_of_vars; ++i) {
-		vals[i]= flip;
-		flip=!flip;
-		vals[-i]=!vals[i];
-	}
-
-	expr.eval_expression(vals);
-
+	mss.init_solver(expr, num_of_clauses, num_of_vars);
 
 }
 
@@ -105,7 +95,8 @@ int main(int argc, char * argv[]) {
 	strcat(file, argv[2]);
 
 	read_in_expression(file);
-	
+	mss.search();
+
 
 	return SUCCESS;
 }

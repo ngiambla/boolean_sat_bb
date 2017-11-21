@@ -10,8 +10,8 @@ class Expression {
 		vector< vector<int> > expression;
 	public:
 		Expression(){};												//to instantiate empty object;
-		void init_expression(vector< vector<int> > expr);						//to add clauses
-		void eval_expression(unordered_map<int, bool> vars);		//to eval the clauses.
+		void init_expression(vector< vector<int> > expr);			//to add clauses
+		int eval_expression(unordered_map<int, bool> vars);		//to eval the clauses.
 };
 
 

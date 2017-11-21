@@ -17,9 +17,7 @@ using namespace std;
 
 
 #define PRUNED		'P'		// to be used internally by the tree structure
-#define ATTACHED	'A'		//
-
-
+#define ATTACHED	'A'		// 
 
 
 
