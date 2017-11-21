@@ -1,4 +1,4 @@
-# boolean_sat_bb #
+# ms_util #
 
 Boolean SAT solver, using Branch and Bound.
 

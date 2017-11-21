@@ -2,12 +2,13 @@
 #include <iostream>
 #include <string.h>
 #include "graphics.h"
-#include "bbdefs.h"
+#include "expression.h"
 
-char * cmd_list="Usage ./brnch_nd_bound -file [filename]";
+char * cmd_list="Usage ./ms_util -file [filename]";
 
+Expression expr;
 
-void derive_boolean_expressions(char * filename) {
+void read_in_expression(char * filename) {
 	FILE *fp;
 	char line[128];
 	bool first_line_read	=	false;
@@ -56,6 +57,7 @@ void derive_boolean_expressions(char * filename) {
 		fclose(fp);
 	} else {
 		LOG(ERROR) << "File does not exist.";
+		exit(-1);
 	}
 
 	LOG(INFO) << "Confirming file read was successful: ";
@@ -66,6 +68,23 @@ void derive_boolean_expressions(char * filename) {
 		}
 		printf("\n");
 	}
+	LOG(INFO) << "Inserting into expression.";
+	expr.init_expression(clauses);
+
+	LOG(INFO) << "Testing...";
+	unordered_map<int, bool> vals;
+
+	vals[1]=false;
+	vals[2]=false;
+	vals[3]=true;
+
+	for(int i=0; i< num_of_vars; ++i) {
+		vals[-i]=!vals[i];
+	}
+
+	expr.eval_expression(vals);
+
+
 }
 
 
@@ -86,9 +105,7 @@ int main(int argc, char * argv[]) {
 	strcpy(file, "../inputs/");
 	strcat(file, argv[2]);
 
-	derive_boolean_expressions(file);
-
-
+	read_in_expression(file);
 
 
 	return SUCCESS;
