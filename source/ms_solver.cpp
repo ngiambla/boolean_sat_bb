@@ -23,10 +23,13 @@ int MS_Solver::select_start() {
 	for(int i = 1 ; i<=num_of_vars; ++i) {
 		unordered_map<int, bool> var_to_bool_map; 
 		var_to_bool_map[i]=true;
+		var_to_bool_map[-i]=false;
+
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 			index=i;
 		}
+		var_to_bool_map[-i]=true;
 		var_to_bool_map[i]=false;
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
@@ -37,10 +40,12 @@ int MS_Solver::select_start() {
 	for(int i = -num_of_vars ; i>=-1; ++i) {
 		unordered_map<int, bool> var_to_bool_map; 
 		var_to_bool_map[i]=true;
+		var_to_bool_map[-i]=false;
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 			index=i;
 		}
+		var_to_bool_map[-i]=true;
 		var_to_bool_map[i]=false;
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
