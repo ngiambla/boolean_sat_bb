@@ -9,10 +9,11 @@ class Expression {
 	private:
 		vector< vector<int> > expression;
 	public:
-		Expression(){};												//to instantiate empty object;
-		void init_expression(vector< vector<int> > expr);			//to add clauses
-		int eval_expression(unordered_map<int, bool> vars);			//to eval the clauses.
-		vector< vector<int> > get_vector_expression();				// get vec expression;
+		Expression(){};																		//to instantiate empty object;
+		void init_expression(vector< vector<int> > expr);									//to add clauses
+		int eval_expression(unordered_map<int, bool> vars);									//to eval the clauses.
+		Expression eval_and_reduce(unordered_map<int, bool> vals);
+		vector< vector<int> > get_vector_expression();										// get vec expression;
 };
 
 

@@ -14,39 +14,85 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 		vars_used_map[i]  = false;
 		vars_used_map[-i] = false;
 	}
-
-	LOG(INFO) << "We are here";
 }
 
 int MS_Solver::select_start() {
-	int index=1;					// hard coding for now.
-	LOG(INFO) << "~ Searching...";
-	LOG(INFO) << "~ * Found * ";
+	int cur_lb = 0;
+	int index=1;			//default case.
+
+	LOG(INFO) << "~ Selecting Start ~";
+	for(int i = 1 ; i<=num_of_vars; ++i) {
+		unordered_map<int, bool> var_to_bool_map; 
+		var_to_bool_map[i]=true;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+			index=i;
+		}
+		var_to_bool_map[i]=false;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+			index=i;
+		}
+	}
+
+	for(int i = -num_of_vars ; i>=-1; ++i) {
+		unordered_map<int, bool> var_to_bool_map; 
+		var_to_bool_map[i]=true;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+			index=i;
+		}
+		var_to_bool_map[i]=false;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+			index=i;
+		}
+	}
+
+	lb=cur_lb;
+	LOG(INFO) << "~ * [+] Found * ~";
+	LOG(INFO) << "    [-] >> Lower Bound: ["<<lb<<"]";
+	LOG(INFO) << "    [-] >> Index: ["<<index<<"]";
+
 	return index;
 }
 
 
 int MS_Solver::compute_lower_bound() {
-	unordered_map<int, int> var_to_count_map;	//_t == temporary
+	int cur_lb = 0;
 
-	for(vector<int> clause : expr.get_vector_expression()){
-		for(int var : clause) {
-			if(var_to_count_map.count(var) > 0) {
-				var_to_count_map[var]++;
-			} else {
-				var_to_count_map[var]=1;				
-			}
+	for(int i = 1 ; i<=num_of_vars; ++i) {
+		unordered_map<int, bool> var_to_bool_map; 
+		var_to_bool_map[i]=true;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+		}
+		var_to_bool_map[i]=false;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
 		}
 	}
-	for(const auto& key : var_to_count_map) {
-		LOG(INFO) << " Var [" << key.first << "] occurs: ["<< key.second <<"]";
+
+	for(int i = -num_of_vars ; i>=-1; ++i) {
+		unordered_map<int, bool> var_to_bool_map; 
+		var_to_bool_map[i]=true;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+		}
+		var_to_bool_map[i]=false;
+		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
+			cur_lb=expr.eval_expression(var_to_bool_map);
+		}
 	}
+
+	lb=cur_lb;
+
 	return lb;
 }
 
 
 int MS_Solver::compute_upper_bound() {
-	LOG(DEBUG) << " [computer_upper_bound] not yet implemented.";
+	LOG(DEBUG) << " [compute_upper_bound] not yet implemented.";
 	return ub;
 }
 
@@ -59,57 +105,87 @@ void MS_Solver::update_upper_bound(int ub) {
 }
 
 
-void MS_Solver::search() {
-	bool searching=true;
+void MS_Solver::construct_and_check(Node * node) {
+	if(node != NULL) {
+		LOG(INFO) << "Checking Node.";
+		node->whoami();		
+	} else {
+		LOG(ERROR) << "Fatal Error. Exiting.\n";
+	}
+}
+
+void MS_Solver::solve() {
+
+	vector< vector<Node *> > tree;
+
+	bool searching 	=	true;
+	int cur_lvl 	=	0;
 
 	//1. start somewhere
 	LOG(INFO) << "Starting to Solve.";
 
+	unordered_map<int, int> var_to_level;
 	int id=select_start();
 
-	compute_upper_bound();
-	compute_lower_bound();
-
+	var_to_level[id]=cur_lvl;
 
 
 	Node * HEAD  = new Node;
-	Node * CUR = HEAD;
 
-	Node * CUR_P;
-
-	CUR->init_node(NULL, 0, id, false);
-	CUR->whoami();
-
-
+	HEAD->init_node(NULL, 0, id, false);
+	HEAD->whoami();
 
 	//2. begin expanding out.
+	vector<Node *> root;	//define the root of the tree
+	root.push_back(HEAD);	//add HEAD to the root.
+	tree.push_back(root);	//Add root to the tree.
 
-		while(searching) {
-			CUR_P=CUR;
+	while(searching) {
+		vector<Node *> new_lvl;
+		int new_id;
+
+		for(Node * n: tree[cur_lvl]) {
 			for(const auto& key : vars_used_map) {
 				if(!key.second) {
-					Node * left_child = new Node;
-					left_child->init_node(CUR_P, 1, key.first, false);
-					left_child->whoami();
-
-					Node * right_child = new Node;
-					right_child->init_node(CUR_P, 1, key.first, true);
-					right_child->whoami();
-
-					CUR_P->set_rh_child(right_child);
-					CUR_P->set_lh_child(left_child);
-					vars_used_map[key.first]=true;
-					break;
+					new_id=key.first;
 				}
 			}
+			Node * left_child;
+			unordered_map<int, bool> var_map;
+			var_map[]
+			left_child.init_node(n, n->get_partial_expression().eval_expression(), key.first, false);
+
+			Node * right_child;
+			right_child.init_node(n, n->get_partial_expression().eval_expression(), key.first, false);
 			break;
 		}
+		vars_used_map[]
+		++cur_lvl;
+	}
+
+		// while(searching) {
+		// 	CUR_P=CUR;
+		// 	for(const auto& key : vars_used_map) {
+		// 		if(!key.second) {
+		// 			Node * left_child = new Node;
+		// 			left_child->init_node(CUR_P, 1, key.first, false);
+		// 			left_child->whoami();
+
+		// 			Node * right_child = new Node;
+		// 			right_child->init_node(CUR_P, 1, key.first, true);
+		// 			right_child->whoami();
+
+		// 			CUR_P->set_rh_child(right_child);
+		// 			CUR_P->set_lh_child(left_child);
+		// 			vars_used_map[key.first]=true;
+		// 			break;
+		// 		}
+		// 	}
+		// 	break;
+		// }
 
 	//3. check the nodes.
 
 	//go to 2, until done;
-
 	LOG(INFO) << "Maximum Number of True Clauses: " << expr.eval_expression(vars_to_vals_map)<<"/"<<num_of_clauses;
-
-	LOG(INFO) << "?!";
 }

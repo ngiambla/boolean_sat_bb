@@ -32,8 +32,8 @@ class MS_Solver {
 		void update_upper_bound(int lb);
 		void update_lower_bound(int ub);
 
-		void search();
-
+		void solve();
+		void construct_and_check(Node * node);
 };
 
 #endif

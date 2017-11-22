@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
 	strcat(file, argv[2]);
 
 	read_in_expression(file);
-	mss.search();
+	mss.solve();
 
 
 	return SUCCESS;

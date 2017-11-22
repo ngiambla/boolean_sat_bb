@@ -11,25 +11,13 @@ int Expression::eval_expression(unordered_map<int, bool> vals) {
 	int how_many_are_true=0;
 
 	for(vector<int> c : expression) {
-		bool init=true;
-		bool res;
 		for(int var : c) {
 			if(vals.count(var)>0) {
-				if(init) {
-					res=vals[var];
-					init=!init;
-				} else {
-					res=res || vals[var]; 
-				}
-				if(res) {
-					LOG(INFO) << "breaking.";
+				if(vals[var]) {
+					how_many_are_true++;
 					break;
 				}
 			}
-		}
-		LOG(INFO)<<"Clause: "<< res;
-		if(res) {
-			how_many_are_true++;
 		}
 	}
 	return how_many_are_true;
@@ -38,4 +26,27 @@ int Expression::eval_expression(unordered_map<int, bool> vals) {
 
 vector< vector<int> > Expression::get_vector_expression() {
 	return expression;
+}
+
+
+Expression Expression::eval_and_reduce(unordered_map<int, bool> vals) {
+	vector< vector<int> > new_expr;
+	Expression expr_red;
+
+	for(vector<int> c : expression) {
+		bool add_clause=true;
+		for(int var : c) {
+			if(vals.count(var)>0) {
+				if(vals[var]) {
+					add_clause=false;
+					break;
+				}
+			}
+		}
+		if(add_clause) {
+			new_expr.push_back(c);
+		}
+	}
+	expr_red.init_expression(new_expr);
+	return expr_red;
 }
