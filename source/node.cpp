@@ -46,8 +46,10 @@ void Node::set_partial_expression(Expression expr) {
 	if(parent != NULL) {
 		if(parent_truth_val) {
 			var[parent->get_id()]=parent_truth_val;
+			var[-(parent->get_id())]=!parent_truth_val;
 			this->expr = expr.eval_and_reduce(var);
 		} else {
+			var[parent->get_id()]=!parent_truth_val;
 			var[-(parent->get_id())]=parent_truth_val;
 			this->expr = expr.eval_and_reduce(var);		
 		}

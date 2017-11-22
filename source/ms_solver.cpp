@@ -63,10 +63,14 @@ int MS_Solver::compute_lower_bound() {
 	for(int i = 1 ; i<=num_of_vars; ++i) {
 		unordered_map<int, bool> var_to_bool_map; 
 		var_to_bool_map[i]=true;
+		var_to_bool_map[-i]=false;
+
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 		}
 		var_to_bool_map[i]=false;
+		var_to_bool_map[-i]=true;
+
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 		}
@@ -75,10 +79,12 @@ int MS_Solver::compute_lower_bound() {
 	for(int i = -num_of_vars ; i>=-1; ++i) {
 		unordered_map<int, bool> var_to_bool_map; 
 		var_to_bool_map[i]=true;
+		var_to_bool_map[-i]=false;
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 		}
 		var_to_bool_map[i]=false;
+		var_to_bool_map[-i]=true;
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 		}
@@ -158,7 +164,9 @@ void MS_Solver::solve() {
 				unordered_map<int, bool> var_map;
 
 				Node * left_child = new Node;
-				var_map[-(n->get_id())]=false;
+				var_map[n->get_id()]=false;
+				var_map[-(n->get_id())]=true;
+
 				cost=n->get_cost(var_map);
 				
 				if(cost >=lb) {
@@ -180,6 +188,7 @@ void MS_Solver::solve() {
 				
 				Node * right_child = new Node;
 				var_map[n->get_id()]=true;
+				var_map[-(n->get_id())]=false;
 				cost=n->get_cost(var_map);
 				
 				if(cost >= lb) {
