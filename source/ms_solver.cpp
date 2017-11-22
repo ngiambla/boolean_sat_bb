@@ -12,7 +12,6 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 
 	for(int i=1; i<=num_of_vars; ++i) {
 		vars_used_map[i]  = false;
-		vars_used_map[-i] = false;
 	}
 }
 
@@ -133,58 +132,85 @@ void MS_Solver::solve() {
 	Node * HEAD  = new Node;
 
 	HEAD->init_node(NULL, 0, id, false);
-	HEAD->whoami();
+	HEAD->set_partial_expression(expr);
 
 	//2. begin expanding out.
-	vector<Node *> root;	//define the root of the tree
-	root.push_back(HEAD);	//add HEAD to the root.
-	tree.push_back(root);	//Add root to the tree.
+	vector<Node *> root;		//define the root of the tree
+	root.push_back(HEAD);		//add HEAD to the root.
+	tree.push_back(root);		//Add root to the tree.
+	vars_used_map[id]=true;	
 
 	while(searching) {
 		vector<Node *> new_lvl;
-		int new_id;
+		int new_id=0;
 
 		for(Node * n: tree[cur_lvl]) {
+			n->whoami();
 			for(const auto& key : vars_used_map) {
 				if(!key.second) {
 					new_id=key.first;
+					vars_used_map[key.first]=true;
+					break;
 				}
 			}
-			Node * left_child;
-			unordered_map<int, bool> var_map;
-			var_map[]
-			left_child.init_node(n, n->get_partial_expression().eval_expression(), key.first, false);
+			if(new_id!=0) {
+				int cost;
+				unordered_map<int, bool> var_map;
 
-			Node * right_child;
-			right_child.init_node(n, n->get_partial_expression().eval_expression(), key.first, false);
-			break;
+				Node * left_child = new Node;
+				var_map[-(n->get_id())]=false;
+				cost=n->get_cost(var_map);
+				
+				if(cost >=lb) {
+					if(cur_lvl<=1) {
+						left_child->init_node(n, cost, new_id, false);
+						left_child->set_partial_expression(n->get_partial_expression());
+						n->set_lh_child(left_child);
+						lb=cost;
+						new_lvl.push_back(left_child);
+					} else if(cost>lb) {
+						left_child->init_node(n, cost, new_id, false);
+						left_child->set_partial_expression(n->get_partial_expression());
+						n->set_lh_child(left_child);
+						lb=cost;
+						new_lvl.push_back(left_child);
+					}
+				}
+
+				
+				Node * right_child = new Node;
+				var_map[n->get_id()]=true;
+				cost=n->get_cost(var_map);
+				
+				if(cost >= lb) {
+					if(cur_lvl<=1) {
+						right_child->init_node(n, cost, new_id, true);
+						right_child->set_partial_expression(n->get_partial_expression());
+						n->set_rh_child(right_child);
+						lb=cost;
+						new_lvl.push_back(right_child);						
+					} else if(cost > lb) {
+						right_child->init_node(n, cost, new_id, true);
+						right_child->set_partial_expression(n->get_partial_expression());
+						n->set_rh_child(right_child);
+						lb=cost;
+						new_lvl.push_back(right_child);
+					}
+				}
+				n->visit_node();
+			}
 		}
-		vars_used_map[]
-		++cur_lvl;
+		LOG(INFO) << "Size of Next Level: "<< new_lvl.size();
+		cin.ignore();
+		LOG(INFO) << "-- id: "<< new_id; 
+		if(new_id==0) {
+			searching=false;
+		} else {
+			tree.push_back(new_lvl);
+			vars_used_map[new_id]=true;
+			++cur_lvl;
+		}
 	}
-
-		// while(searching) {
-		// 	CUR_P=CUR;
-		// 	for(const auto& key : vars_used_map) {
-		// 		if(!key.second) {
-		// 			Node * left_child = new Node;
-		// 			left_child->init_node(CUR_P, 1, key.first, false);
-		// 			left_child->whoami();
-
-		// 			Node * right_child = new Node;
-		// 			right_child->init_node(CUR_P, 1, key.first, true);
-		// 			right_child->whoami();
-
-		// 			CUR_P->set_rh_child(right_child);
-		// 			CUR_P->set_lh_child(left_child);
-		// 			vars_used_map[key.first]=true;
-		// 			break;
-		// 		}
-		// 	}
-		// 	break;
-		// }
-
-	//3. check the nodes.
 
 	//go to 2, until done;
 	LOG(INFO) << "Maximum Number of True Clauses: " << expr.eval_expression(vars_to_vals_map)<<"/"<<num_of_clauses;

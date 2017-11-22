@@ -35,21 +35,34 @@ void Node::set_rh_child(Node * right_child) {
 
 void Node::whoami() {
 	if(parent != NULL) {
-		printf("\n[+] Node[%02x]\n |--Cost[%02x]\n |--parent_id[%02x]\n |--parent_truth_val: [%02x]\n\n", id, cost, parent_truth_val, parent->get_id());
+		printf("\n[+] Node[%d]\n |--Cost[%d]\n |--parent_id[%d]\n |--parent_truth_val: [%d]\n\n", id, cost, parent->get_id(), parent_truth_val);
 	} else {	
-		printf("\n[+] Node[%02x]\n |--Cost[%02x]\n |--parent_id[NULL]\n |--parent_truth_val: [NULL]\n\n", id, cost);		
+		printf("\n[+] Node[%d]\n |--Cost[%d]\n |--parent_id[NULL]\n |--parent_truth_val: [NULL]\n\n", id, cost);		
 	}
 }
 
 void Node::set_partial_expression(Expression expr) {
 	unordered_map<int, bool> var;
-	var[parent->get_id()]=parent_truth_val;
-	this->expr = expr.eval_and_reduce(var);
+	if(parent != NULL) {
+		if(parent_truth_val) {
+			var[parent->get_id()]=parent_truth_val;
+			this->expr = expr.eval_and_reduce(var);
+		} else {
+			var[-(parent->get_id())]=parent_truth_val;
+			this->expr = expr.eval_and_reduce(var);		
+		}
+	} else {
+		this->expr=expr;
+	}
 }
 
 Expression Node::get_partial_expression() {
 	return expr;
 
+}
+
+int Node::get_cost(unordered_map<int,bool> var) {
+	return cost+expr.eval_expression(var);
 }
 
 int Node::get_id() {

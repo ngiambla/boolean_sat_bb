@@ -41,6 +41,7 @@ class Node {
 
 		void visit_node();
 		bool was_visited();
+		int get_cost(unordered_map<int,bool> var);
 };
 
 #endif
