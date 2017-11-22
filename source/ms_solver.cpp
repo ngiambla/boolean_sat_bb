@@ -214,11 +214,13 @@ void MS_Solver::solve() {
 				n->visit_node();
 			}
 		}
-		LOG(INFO) << "Size of Next Level: "<< new_lvl.size();
 		cin.ignore();
 		LOG(INFO) << "-- id: "<< new_id; 
 		if(new_id==0) {
 			searching=false;
+			LOG(INFO) << "~ Expanding Last Level ~";
+			
+
 		} else {
 			tree.push_back(new_lvl);
 			vars_used_map[new_id]=true;
