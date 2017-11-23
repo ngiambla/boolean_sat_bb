@@ -16,9 +16,7 @@ using namespace std;
 #define OKAY 		0
 #define FAIL    	-1
 
-
-#define PRUNED		'P'		// to be used internally by the tree structure
-#define ATTACHED	'A'		// 
+#define THRESHOLD   5
 
 
 
