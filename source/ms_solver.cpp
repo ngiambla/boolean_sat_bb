@@ -220,7 +220,7 @@ void MS_Solver::solve() {
 			soln[id]=NEXT->get_parent_truth();
 			soln[-id]=!(NEXT->get_parent_truth());
 		}
-		
+
 		NEXT=NEXT->get_parent();
 
 

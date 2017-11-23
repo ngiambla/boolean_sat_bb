@@ -44,7 +44,7 @@ void Node::whoami() {
 
 void Node::set_partial_expression(Expression expr) {
 	unordered_map<int, bool> var;
-	if(parent != NULL) {
+	if(parent != NULL || false) {
 		var[parent->get_id()]=parent_truth_val;
 		var[-(parent->get_id())]=!parent_truth_val;
 		this->expr = expr.eval_and_reduce(var);
