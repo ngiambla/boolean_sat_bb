@@ -41,7 +41,10 @@ class Node {
 		int get_id();
 
 		void visit_node();
+		
 		bool was_visited();
+		bool get_parent_truth();
+
 		int update_cost(unordered_map<int, bool> var);
 		int get_parent_cost();
 };

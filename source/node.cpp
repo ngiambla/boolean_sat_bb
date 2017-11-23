@@ -70,6 +70,10 @@ int Node::get_id() {
 	return id;
 }
 
+bool Node::get_parent_truth() {
+	return parent_truth_val;
+}
+
 void Node::visit_node() {
 	was_visited_t=true;
 }

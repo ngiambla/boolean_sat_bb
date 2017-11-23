@@ -102,15 +102,24 @@ void MS_Solver::solve() {
 	root.push_back(HEAD);		//add HEAD to the root.
 	tree.push_back(root);		//Add root to the tree.
 	vars_used_map[id]=true;	
+	
+	int struck_level_counter 	= 	0;	//
+	int how_many_to_skip 		= 	0;	//
 
 	while(searching) {
 		vector<Node *> new_lvl;
 		int new_id=0;
 		for(const auto& key : vars_used_map) {
 			if(!key.second) {
-				new_id=key.first;
-				vars_used_map[key.first]=true;
-				break;
+				LOG(INFO) << "Trying to add new var: ";
+				if(how_many_to_skip==0){
+
+					new_id=key.first;
+					vars_used_map[key.first]=true;
+					break;
+				} else {
+					how_many_to_skip--;
+				}
 			}
 		}
 		LOG(INFO) << "~~~~~~~~~~ LVL ["<<cur_lvl<<"] ~~~~~~~~~~";
@@ -178,10 +187,47 @@ void MS_Solver::solve() {
 			sort(new_lvl.begin(), new_lvl.end(), cmp_node);
 			if(new_lvl.size() > 0) {
 				lb=new_lvl[0]->get_parent_cost();
+				tree.push_back(new_lvl);
+				vars_used_map[new_id]=true;
+
+				struck_level_counter=0;
+				how_many_to_skip=0;
+
+				++cur_lvl;
+			} else {
+				struck_level_counter++;
+				how_many_to_skip=struck_level_counter;
+				LOG(INFO) << "How Many Vars to Cycle: "<<how_many_to_skip;
 			}
-			tree.push_back(new_lvl);
-			vars_used_map[new_id]=true;
-			++cur_lvl;
+
 		}
 	}
+
+	LOG(INFO) << "Tree Found";
+	
+	bool tree_search_complete=false;
+	
+
+	Node * LEAF = tree[cur_lvl][0];
+	Node * NEXT = LEAF;
+	unordered_map<int, bool> soln;
+
+	while(!tree_search_complete) {
+		NEXT->whoami();
+	
+		if(NEXT->get_parent() != NULL) {
+			int id=NEXT->get_parent()->get_id();
+			soln[id]=NEXT->get_parent_truth();
+			soln[-id]=!(NEXT->get_parent_truth());
+		}
+		
+		NEXT=NEXT->get_parent();
+
+
+		if(NEXT == NULL) {
+			tree_search_complete=true;
+		}
+	}
+
+	LOG(INFO) << "Satisfied Clauses: "<<expr.eval_expression(soln)<<"/"<<num_of_clauses;
 }
