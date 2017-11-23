@@ -1,0 +1,3 @@
+Maxino is based on the kProcessCore algorithm, a parametric algorithm generalizing OLL, ONE and PMRES.
+Parameter k is dynamically determined for each processed unsatisfiable core by a function taking into account the size of the core.
+Satisfiability of propositional theories is checked by means of a pseudo boolean solver extending Glucose 4.1 single thread.

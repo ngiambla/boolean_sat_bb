@@ -27,7 +27,6 @@ class MS_Solver {
 		void init_solver(Expression expr, int num_of_clauses, int num_of_vars);
 
 		int compute_upper_bound();
-		int compute_lower_bound();
 
 		void update_upper_bound(int lb);
 		void update_lower_bound(int ub);

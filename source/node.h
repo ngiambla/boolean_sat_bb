@@ -12,6 +12,7 @@ class Node {
 		Node * right_child;			//
 		Node * parent;				//
 
+		bool cost_set;				//to speed up processing.
 		int cost;
 		
 		int id;						//	id for node.
@@ -41,7 +42,8 @@ class Node {
 
 		void visit_node();
 		bool was_visited();
-		int get_cost(unordered_map<int,bool> var);
+		int update_cost(unordered_map<int, bool> var);
+		int get_parent_cost();
 };
 
 #endif

@@ -50,3 +50,13 @@ Expression Expression::eval_and_reduce(unordered_map<int, bool> vals) {
 	expr_red.init_expression(new_expr);
 	return expr_red;
 }
+
+void Expression::display_expression() {
+	for(vector<int> clause: expression) {
+		printf("Clause: ");
+		for(int v : clause) {
+			printf("[%d] ", v);
+		}
+		printf("\n");
+	}
+}

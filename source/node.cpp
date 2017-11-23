@@ -3,6 +3,7 @@
 void Node::init_node(Node * parent, int cost, int id, bool parent_truth_val) {
 	this->parent 			=	parent;
 	this->cost 				=	cost;
+	this->cost_set			=	false;
 	this->id 				=	id;
 	this->parent_truth_val	=	parent_truth_val;
 	this->was_visited_t		=	false;
@@ -44,15 +45,9 @@ void Node::whoami() {
 void Node::set_partial_expression(Expression expr) {
 	unordered_map<int, bool> var;
 	if(parent != NULL) {
-		if(parent_truth_val) {
-			var[parent->get_id()]=parent_truth_val;
-			var[-(parent->get_id())]=!parent_truth_val;
-			this->expr = expr.eval_and_reduce(var);
-		} else {
-			var[parent->get_id()]=!parent_truth_val;
-			var[-(parent->get_id())]=parent_truth_val;
-			this->expr = expr.eval_and_reduce(var);		
-		}
+		var[parent->get_id()]=parent_truth_val;
+		var[-(parent->get_id())]=!parent_truth_val;
+		this->expr = expr.eval_and_reduce(var);
 	} else {
 		this->expr=expr;
 	}
@@ -63,8 +58,12 @@ Expression Node::get_partial_expression() {
 
 }
 
-int Node::get_cost(unordered_map<int,bool> var) {
-	return cost+expr.eval_expression(var);
+int Node::update_cost(unordered_map<int, bool> var) {
+	return 	cost+expr.eval_expression(var);
+}
+
+int Node::get_parent_cost() {
+	return cost;
 }
 
 int Node::get_id() {
@@ -78,3 +77,4 @@ void Node::visit_node() {
 bool Node::was_visited() {
 	return was_visited_t;
 }
+

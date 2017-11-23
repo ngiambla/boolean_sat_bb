@@ -1,4 +1,11 @@
+#include <algorithm>
 #include "ms_solver.h"
+
+//~ Helper Function:
+
+bool cmp_node(Node* n1, Node* n2) {
+   	return n1->get_parent_cost() > n2->get_parent_cost();
+}
 
 
 void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars) {
@@ -31,22 +38,7 @@ int MS_Solver::select_start() {
 		}
 		var_to_bool_map[-i]=true;
 		var_to_bool_map[i]=false;
-		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
-			index=i;
-		}
-	}
 
-	for(int i = -num_of_vars ; i>=-1; ++i) {
-		unordered_map<int, bool> var_to_bool_map; 
-		var_to_bool_map[i]=true;
-		var_to_bool_map[-i]=false;
-		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
-			index=i;
-		}
-		var_to_bool_map[-i]=true;
-		var_to_bool_map[i]=false;
 		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
 			cur_lb=expr.eval_expression(var_to_bool_map);
 			index=i;
@@ -60,46 +52,6 @@ int MS_Solver::select_start() {
 
 	return index;
 }
-
-
-int MS_Solver::compute_lower_bound() {
-	int cur_lb = 0;
-
-	for(int i = 1 ; i<=num_of_vars; ++i) {
-		unordered_map<int, bool> var_to_bool_map; 
-		var_to_bool_map[i]=true;
-		var_to_bool_map[-i]=false;
-
-		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
-		}
-		var_to_bool_map[i]=false;
-		var_to_bool_map[-i]=true;
-
-		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
-		}
-	}
-
-	for(int i = -num_of_vars ; i>=-1; ++i) {
-		unordered_map<int, bool> var_to_bool_map; 
-		var_to_bool_map[i]=true;
-		var_to_bool_map[-i]=false;
-		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
-		}
-		var_to_bool_map[i]=false;
-		var_to_bool_map[-i]=true;
-		if(expr.eval_expression(var_to_bool_map)>cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
-		}
-	}
-
-	lb=cur_lb;
-
-	return lb;
-}
-
 
 int MS_Solver::compute_upper_bound() {
 	LOG(DEBUG) << " [compute_upper_bound] not yet implemented.";
@@ -154,34 +106,36 @@ void MS_Solver::solve() {
 	while(searching) {
 		vector<Node *> new_lvl;
 		int new_id=0;
-
+		for(const auto& key : vars_used_map) {
+			if(!key.second) {
+				new_id=key.first;
+				vars_used_map[key.first]=true;
+				break;
+			}
+		}
+		LOG(INFO) << "~~~~~~~~~~ LVL ["<<cur_lvl<<"] ~~~~~~~~~~";
 		for(Node * n: tree[cur_lvl]) {
 			n->whoami();
-			for(const auto& key : vars_used_map) {
-				if(!key.second) {
-					new_id=key.first;
-					vars_used_map[key.first]=true;
-					break;
-				}
-			}
-			if(new_id!=0) {
+
+			if(cur_lvl <=num_of_vars) {
 				int cost;
 				unordered_map<int, bool> var_map;
 
 				Node * left_child = new Node;
-				var_map[n->get_id()]=false;
-				var_map[-(n->get_id())]=true;
+				var_map[n->get_id()]=true;
+				var_map[-(n->get_id())]=false;
+				cost=n->update_cost(var_map);
+				LOG(INFO) << "Current Cost: "<<cost;
 
-				cost=n->get_cost(var_map);
-				
 				if(cost >=lb) {
-					if(cur_lvl<=1) {
+					if(cur_lvl<1) {
 						left_child->init_node(n, cost, new_id, false);
 						left_child->set_partial_expression(n->get_partial_expression());
 						n->set_lh_child(left_child);
 						lb=cost;
 						new_lvl.push_back(left_child);
 					} else if(cost>lb) {
+						LOG(INFO)<<"Adding -Left";
 						left_child->init_node(n, cost, new_id, false);
 						left_child->set_partial_expression(n->get_partial_expression());
 						n->set_lh_child(left_child);
@@ -192,18 +146,20 @@ void MS_Solver::solve() {
 
 				
 				Node * right_child = new Node;
-				var_map[n->get_id()]=true;
-				var_map[-(n->get_id())]=false;
-				cost=n->get_cost(var_map);
+				var_map[-(n->get_id())]=true;
+				var_map[n->get_id()]=false;
+				cost=n->update_cost(var_map);
+				LOG(INFO) << "Current Cost: "<<cost;
 				
 				if(cost >= lb) {
-					if(cur_lvl<=1) {
-						right_child->init_node(n, cost, new_id, true);
-						right_child->set_partial_expression(n->get_partial_expression());
+					if(cur_lvl<1) {
+						right_child->init_node(n, cost, new_id, true);						
+						right_child->set_partial_expression(n->get_partial_expression());						
 						n->set_rh_child(right_child);
 						lb=cost;
 						new_lvl.push_back(right_child);						
 					} else if(cost > lb) {
+						LOG(INFO)<<"Adding -Right";
 						right_child->init_node(n, cost, new_id, true);
 						right_child->set_partial_expression(n->get_partial_expression());
 						n->set_rh_child(right_child);
@@ -212,22 +168,20 @@ void MS_Solver::solve() {
 					}
 				}
 				n->visit_node();
-			}
+			} 
 		}
 		cin.ignore();
-		LOG(INFO) << "-- id: "<< new_id; 
-		if(new_id==0) {
-			searching=false;
-			LOG(INFO) << "~ Expanding Last Level ~";
-			
 
+		if(cur_lvl==num_of_vars) {
+			searching=false;
 		} else {
+			sort(new_lvl.begin(), new_lvl.end(), cmp_node);
+			if(new_lvl.size() > 0) {
+				lb=new_lvl[0]->get_parent_cost();
+			}
 			tree.push_back(new_lvl);
 			vars_used_map[new_id]=true;
 			++cur_lvl;
 		}
 	}
-
-	//go to 2, until done;
-	LOG(INFO) << "Maximum Number of True Clauses: " << expr.eval_expression(vars_to_vals_map)<<"/"<<num_of_clauses;
 }
