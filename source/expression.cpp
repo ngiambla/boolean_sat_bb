@@ -6,7 +6,6 @@ void Expression::init_expression(vector< vector<int> > expr) {
 }
 
 
-
 int Expression::eval_expression(unordered_map<int, bool> vals) {
 	int how_many_are_true=0;
 
@@ -49,14 +48,4 @@ Expression Expression::eval_and_reduce(unordered_map<int, bool> vals) {
 	}
 	expr_red.init_expression(new_expr);
 	return expr_red;
-}
-
-void Expression::display_expression() {
-	for(vector<int> clause: expression) {
-		printf("Clause: ");
-		for(int v : clause) {
-			printf("[%d] ", v);
-		}
-		printf("\n");
-	}
 }

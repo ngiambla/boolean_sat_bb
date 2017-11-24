@@ -1,14 +1,11 @@
 #include "node.h"
 
-void Node::init_node(Node * parent, int cost, int id, bool parent_truth_val) {
-	this->parent 			=	parent;
-	this->cost 				=	cost;
-	this->cost_set			=	false;
-	this->id 				=	id;
-	this->parent_truth_val	=	parent_truth_val;
-	this->was_visited_t		=	false;
-	this->left_child		=	NULL;
-	this->right_child		=	NULL;
+void Node::init_node(Node * parent, int id, bool parent_truth_val) {
+	this->parent 				=	parent;
+	this->id 					=	id;
+	this->parent_truth_val		=	parent_truth_val;
+	this->left_child			=	NULL;
+	this->right_child			=	NULL;
 }
 
 Node * Node::get_lh_child() {
@@ -25,6 +22,13 @@ Node * Node::get_parent() {
 	return parent;
 }
 
+void Node::add_var_to_soln(unordered_map<int, bool> var) {
+	soln.insert(var.begin(), var.end());
+} 
+
+unordered_map<int, bool> Node::get_soln() {
+	return soln;
+}
 
 void Node::set_lh_child(Node * left_child) {
 	this->left_child=left_child;
@@ -36,49 +40,16 @@ void Node::set_rh_child(Node * right_child) {
 
 void Node::whoami() {
 	if(parent != NULL) {
-		printf("\n[+] Node[%d]\n |--Cost[%d]\n |--parent_id[%d]\n |--parent_truth_val: [%d]\n\n", id, cost, parent->get_id(), parent_truth_val);
+		printf("\n[+] Node[%d]\n |--parent_id[%d]\n |--parent_truth_val: [%d]\n\n", id, parent->get_id(), parent_truth_val);
 	} else {	
-		printf("\n[+] Node[%d]\n |--Cost[%d]\n |--parent_id[NULL]\n |--parent_truth_val: [NULL]\n\n", id, cost);		
+		printf("\n[+] Node[%d]\n |--parent_id[NULL]\n |--parent_truth_val: [NULL]\n\n", id);		
 	}
-}
-
-void Node::set_partial_expression(Expression expr) {
-	unordered_map<int, bool> var;
-	if(parent != NULL || false) {
-		var[parent->get_id()]=parent_truth_val;
-		var[-(parent->get_id())]=!parent_truth_val;
-		this->expr = expr.eval_and_reduce(var);
-	} else {
-		this->expr=expr;
-	}
-}
-
-Expression Node::get_partial_expression() {
-	return expr;
-
-}
-
-int Node::update_cost(unordered_map<int, bool> var) {
-	return 	cost+expr.eval_expression(var);
-}
-
-int Node::get_parent_cost() {
-	return cost;
 }
 
 int Node::get_id() {
 	return id;
 }
 
-bool Node::get_parent_truth() {
+bool Node::which_parent_side() {
 	return parent_truth_val;
 }
-
-void Node::visit_node() {
-	was_visited_t=true;
-}
-
-bool Node::was_visited() {
-	return was_visited_t;
-}
-

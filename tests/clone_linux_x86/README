@@ -1,0 +1,23 @@
+Requirements
+------------
+
+This software is compiled for and runs on x86 machines using linux-based systems.
+Some of the program's modules also make use of the java runtime system. Please
+ensure that an updated version of the java runtime system is properly installed
+before attempting to run the solver.
+
+Running Clone
+-------------
+
+To run the clone solver on a problem instance, invoke the following command:
+
+   ./clone.sh <instance>
+
+Where <instance> is the name of a Max-SAT problem instance in the extended DIMACS
+CNF format. See [http://www.maxsat.udl.cat/08/index.php?disp=requirments] for more
+information.
+
+License
+-------
+Clone is available for non-commercial purposes only. For more
+information, please contact us at clone at cs.ucla.edu.
