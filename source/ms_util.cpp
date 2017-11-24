@@ -73,15 +73,11 @@ void read_in_expression(char * filename) {
 
 	expr.init_expression(clauses);
 
-	// unordered_map<int, bool> vars;
-	// bool meow=false;
-	// for(int i=1 ; i<=num_of_vars; ++i) {
-	// 	vars[i]=meow;
-	// 	vars[-i]=!meow;
-	// 	meow=!meow;
-	// }
-
-	// LOG(INFO) << "??? wtf "<<expr.eval_expression(vars) << "/" << num_of_clauses;
+	unordered_map<int, bool> vars;
+	for(int i=1; i<=num_of_vars; ++i) {
+		vars[i]=true;
+	}
+	LOG(INFO) << "EVAL "<<expr.eval_expression(vars);
 	
 	LOG(INFO) << "Initializing Solver.";
 

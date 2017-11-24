@@ -23,7 +23,7 @@ Node * Node::get_parent() {
 }
 
 void Node::add_var_to_soln(unordered_map<int, bool> var) {
-	soln.insert(var.begin(), var.end());
+	soln=var;
 } 
 
 unordered_map<int, bool> Node::get_soln() {
