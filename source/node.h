@@ -12,7 +12,8 @@ class Node {
 		Node * right_child;
 		Node * parent;
 		
-		int id;						//	id for node.
+		int id;						//	variable id for node.
+		int uid; 					//  unique id for node.
 		bool parent_truth_val;		//	
 
 		unordered_map<int, bool> soln;
@@ -21,7 +22,7 @@ class Node {
 
 		Node(){};
 
-		void init_node(Node * parent, int id, bool parent_truth_val);
+		void init_node(Node * parent, int id, int uid, bool parent_truth_val);
 
 		Node * get_lh_child();
 		Node * get_rh_child();
@@ -35,6 +36,7 @@ class Node {
 
 		void whoami();
 		int get_id();
+		int get_uid();
 
 		bool which_parent_side();
 };

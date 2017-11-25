@@ -17,7 +17,7 @@ using namespace std;
 #define OKAY 		0
 #define FAIL    	-1
 
-#define THRESHOLD   5
+#define THRESHOLD   2
 
 
 
