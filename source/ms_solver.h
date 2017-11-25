@@ -18,6 +18,7 @@ class MS_Solver {
 		int ub;			//upper bound
 
 		int select_start();
+		void rank_vars();
 
 
 	public:

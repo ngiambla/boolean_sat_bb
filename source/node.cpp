@@ -1,8 +1,9 @@
 #include "node.h"
 
-void Node::init_node(Node * parent, int id, bool parent_truth_val) {
+void Node::init_node(Node * parent, int id, int uid, bool parent_truth_val) {
 	this->parent 				=	parent;
 	this->id 					=	id;
+	this->uid 					= 	uid;
 	this->parent_truth_val		=	parent_truth_val;
 	this->left_child			=	NULL;
 	this->right_child			=	NULL;
@@ -23,7 +24,7 @@ Node * Node::get_parent() {
 }
 
 void Node::add_var_to_soln(unordered_map<int, bool> var) {
-	soln.insert(var.begin(), var.end());
+	soln=var;
 } 
 
 unordered_map<int, bool> Node::get_soln() {
@@ -40,14 +41,18 @@ void Node::set_rh_child(Node * right_child) {
 
 void Node::whoami() {
 	if(parent != NULL) {
-		printf("\n[+] Node[%d]\n |--parent_id[%d]\n |--parent_truth_val: [%d]\n\n", id, parent->get_id(), parent_truth_val);
+		printf("\n[+] Node[%3d]~[%d]\n |--parent_id[%d]\n |--parent_truth_val: [%d]\n\n", uid, id, parent->get_id(), parent_truth_val);
 	} else {	
-		printf("\n[+] Node[%d]\n |--parent_id[NULL]\n |--parent_truth_val: [NULL]\n\n", id);		
+		printf("\n[+] Node[%3d]~[%d]\n |--parent_id[NULL]\n |--parent_truth_val: [NULL]\n\n", uid, id);		
 	}
 }
 
 int Node::get_id() {
 	return id;
+}
+
+int Node::get_uid() {
+	return uid;
 }
 
 bool Node::which_parent_side() {
