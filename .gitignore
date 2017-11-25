@@ -1,2 +1,4 @@
 #all .o's
 *.o
+
+tests/open-wbo
