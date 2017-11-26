@@ -146,7 +146,7 @@ void MS_Solver::solve() {
 
 				Node * right_child = new Node;
 
-				if(cur_lvl<=THRESHOLD ||(cost > lb) || (cost >= lb && (int) next_lvl.size() < 4)) {
+				if(cur_lvl<=THRESHOLD || hanging || (cost > lb) || (cost >= lb && (int) next_lvl.size() <= 8)) {
 					LOG(INFO)<<"Adding -Right";
 					right_child->init_node(n, next_id, cur_uid++, true);
 					right_child->add_var_to_soln(var_map);					
@@ -164,7 +164,7 @@ void MS_Solver::solve() {
 				
 				Node * left_child = new Node;
 
-				if( cur_lvl<=THRESHOLD ||(cost > lb) || (cost >= lb && (int) next_lvl.size() < 4)) {
+				if( cur_lvl<=THRESHOLD || hanging || (cost > lb) || (cost >= lb && (int) next_lvl.size() <= 8)) {
 					LOG(INFO)<<"Adding -Left";
 					left_child->init_node(n, next_id, cur_uid++, false);
 					left_child->add_var_to_soln(var_map);					
@@ -176,40 +176,6 @@ void MS_Solver::solve() {
 
 			} 
 		}
-
-		// if(next_lvl.size() < 2) {
-			
-		// 	for(Node * n: tree[cur_lvl]) {
-		// 		unordered_map<int, bool> var_map=n->get_soln();
-		// 		var_map[n->get_id()]=true;
-		// 		cost = expr.eval_expression(var_map);
-		// 		LOG(INFO) << " [RH] Satisfied Clauses: "<<cost;	
-		// 		if(coid == -1) {
-		// 			if(cost > lb) {
-		// 			}
-		// 		} else {
-		// 			if(cost > lb && cost < coid) {
-		// 				best_per_lvl[cur_lvl]=cost;
-		// 			}					
-		// 		}	
-
-		// 		var_map=n->get_soln();
-		// 		var_map[n->get_id()]=false;
-		// 		cost = expr.eval_expression(var_map);
-		// 		LOG(INFO) << " [LH] Satisfied Clauses: "<<cost;
-		// 		if(coid == -1) {
-		// 			if(cost > lb) {
-		// 				lb=cost;
-		// 				best_per_lvl[cur_lvl]=cost;
-		// 			}
-		// 		} else {
-		// 			if(cost > lb && cost < coid) {
-		// 				lb=cost;
-		// 				best_per_lvl[cur_lvl]=cost;
-		// 			}					
-		// 		}	
-		// 	}
-		// }
 
 		if(cnt_hold==0){
 			hanging=false;	
@@ -237,12 +203,12 @@ void MS_Solver::solve() {
 				
 				oid=LAST->get_uid();
 
-				for(int i=0; i<1 ; ++i) {
+				for(int i=0; i<2 ; ++i) {
 					tree.erase(tree.end());
 				}
 				LOG(WARNING) << "~ Reset Offending Best.";
-				coid=best_per_lvl[cur_lvl];
-				cur_lvl-=1;
+				coid=best_per_lvl[cur_lvl-1];
+				cur_lvl-=2;
 	
 				LOG(WARNING) << "~ Resetting UID-Counter";
 				cur_uid=uid_per_lvls[cur_lvl];
@@ -250,7 +216,7 @@ void MS_Solver::solve() {
 
 				vars_used_map[id_per_lvls[cur_lvl]]=false;
 				hanging=true;
-				cnt_hold=1;
+				cnt_hold+=1;
 				LOG(WARNING) << "+-- reverting.";
 				cin.ignore();
 			}
