@@ -18,14 +18,13 @@ class MS_Solver {
 		int ub;			//upper bound
 
 		int select_start();
-		void rank_vars();
-
 
 	public:
 		MS_Solver(){};
 		
 		void init_solver(Expression expr, int num_of_clauses, int num_of_vars);
 		void solve();
+
 };
 
 #endif

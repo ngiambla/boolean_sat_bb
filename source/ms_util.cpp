@@ -72,12 +72,6 @@ void read_in_expression(char * filename) {
 	LOG(INFO) << "Inserting into expression.";
 
 	expr.init_expression(clauses);
-
-	unordered_map<int, bool> vars;
-	for(int i=1; i<=num_of_vars; ++i) {
-		vars[i]=true;
-	}
-	LOG(INFO) << "EVAL "<<expr.eval_expression(vars);
 	
 	LOG(INFO) << "Initializing Solver.";
 
