@@ -15,7 +15,6 @@ class MS_Solver {
 		int num_of_vars;
 
 		int lb;			//lower bound
-		int ub;			//upper bound
 
 		int select_start();
 

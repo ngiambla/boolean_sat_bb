@@ -9,7 +9,6 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 	this->num_of_vars=num_of_vars;			//number of vars;
 
 	lb=0;
-	ub=0;
 
 	this->expr=expr;
 
@@ -58,6 +57,8 @@ int MS_Solver::select_start() {
 	return index;
 }
 
+
+
 double compute_variance(vector< vector<int> > clauses, int num_of_vars) {
 	unordered_map<int, int> var_count;
 	for(vector<int> clause : clauses) {
@@ -91,6 +92,8 @@ double compute_variance(vector< vector<int> > clauses, int num_of_vars) {
 	return pow(variance, 0.5);
 }
 
+
+
 void MS_Solver::solve() {
 	bool searching		=	true;		// signifies if we can finish exploring the tree.
 	bool high_variance	=	false;
@@ -118,12 +121,6 @@ void MS_Solver::solve() {
 
 	unordered_map<int, int>	id_per_lvls;
 	unordered_map<int, int> uid_per_lvls;
-	unordered_map<int, int> best_per_lvl;
-	unordered_map<int, bool> skip_id;
-
-	for(int i=1; i<num_of_vars; ++i) {
-		skip_id[i]=false;
-	}
 
 	int head_id=select_start();
 
@@ -155,7 +152,7 @@ void MS_Solver::solve() {
 		int cost;
 
 		for(const auto& key : vars_used_map) {
-			if(!key.second && !skip_id[key.first]) {
+			if(!key.second) {
 				next_id=key.first;
 				break;
 			}
@@ -178,7 +175,6 @@ void MS_Solver::solve() {
 				cost = expr.eval_expression_neg(var_map);
 				if(cost < lb) {
 					lb=cost;
-					best_per_lvl[cur_lvl]=cost;
 				}
 					
 		
@@ -189,7 +185,6 @@ void MS_Solver::solve() {
 				cost = expr.eval_expression_neg(var_map);
 				if(cost < lb) {
 					lb=cost;
-					best_per_lvl[cur_lvl]=cost;
 				}
 
 			}
@@ -265,19 +260,12 @@ void MS_Solver::solve() {
 			LOG(INFO) << "Exiting Search..";
 			searching=false;
 		} else {
-			//if(next_lvl.size() > 0 ) {
-				tree.push_back(next_lvl);
-				if(NODES_REQ>=128 && cur_lvl>THRESHOLD){
-					NODES_REQ/=2;
-				}
-				++cur_lvl;
-				vars_used_map[next_id]=true;
-				for(const auto& key : skip_id) {
-					skip_id[key.first]=false;
-				}
-			//} else {
-			//	skip_id[next_id]=true;
-			//}
+			tree.push_back(next_lvl);
+			if(NODES_REQ>=128 && cur_lvl>THRESHOLD){
+				NODES_REQ/=2;
+			}
+			++cur_lvl;
+			vars_used_map[next_id]=true;
 		}
 	}
 
@@ -292,7 +280,7 @@ void MS_Solver::solve() {
 			index=i;
 		}
 	}
-	LOG(INFO) << "Satisfied Clauses: "<<expr.eval_expression(tree[cur_lvl][index]->get_soln())<<"/"<<num_of_clauses;
+
 	for(const auto& key : tree[cur_lvl][index]->get_soln()) {
 		if(key.first > 0){
 			if(key.second) {
@@ -302,7 +290,8 @@ void MS_Solver::solve() {
 			}
 		}
 	}
-
+	
+	LOG(STATS) << " ~-> Satisfied Clauses: "<<expr.eval_expression(tree[cur_lvl][index]->get_soln())<<"/"<<num_of_clauses;
 	int nodes_visited=0;
 	for(int i = 0; i < (int)tree.size(); ++i) {
 		for(int j = 0; j < (int)tree[i].size(); ++j) {
@@ -311,9 +300,9 @@ void MS_Solver::solve() {
 		}
 	}
 
-	LOG(STATS) << "Visited: "<<nodes_visited<< "/"<<pow(2, num_of_vars);
+	LOG(STATS) << " ~-> Visited: "<<nodes_visited<< "/"<<pow(2, num_of_vars);
 	chrono::duration<double> elapsed_seconds = end-start;
-	LOG(STATS) << "Time Elapsed: " << elapsed_seconds.count() << " seconds.";
+	LOG(STATS) << " ~-> Time Elapsed: " << elapsed_seconds.count() << " seconds.";
 }
 
 
