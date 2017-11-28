@@ -138,7 +138,9 @@ void MS_Solver::solve() {
 	}
 
 	HEAD->init_node(NULL, head_id, cur_uid++,false);
-	HEAD->add_var_to_soln(curr_soln);
+	if(!high_variance){
+		HEAD->add_var_to_soln(curr_soln);
+	}
 	lb=expr.eval_expression_neg(curr_soln);
 
 
@@ -263,7 +265,7 @@ void MS_Solver::solve() {
 			LOG(INFO) << "Exiting Search..";
 			searching=false;
 		} else {
-			if(next_lvl.size() > 0 ) {
+			//if(next_lvl.size() > 0 ) {
 				tree.push_back(next_lvl);
 				if(NODES_REQ>=128 && cur_lvl>THRESHOLD){
 					NODES_REQ/=2;
@@ -273,9 +275,9 @@ void MS_Solver::solve() {
 				for(const auto& key : skip_id) {
 					skip_id[key.first]=false;
 				}
-			} else {
-				skip_id[next_id]=true;
-			}
+			//} else {
+			//	skip_id[next_id]=true;
+			//}
 		}
 	}
 
