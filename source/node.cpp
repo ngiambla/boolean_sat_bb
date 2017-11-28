@@ -58,3 +58,8 @@ int Node::get_uid() {
 bool Node::which_parent_side() {
 	return parent_truth_val;
 }
+
+void Node::set_pos(int x, int y) {
+	this->x=x;
+	this->y=y;
+}

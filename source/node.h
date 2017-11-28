@@ -12,9 +12,11 @@ class Node {
 		Node * right_child;
 		Node * parent;
 		
-		int id;						//	variable id for node.
-		int uid; 					//  unique id for node.
-		bool parent_truth_val;		//	
+		int id;						// variable id for node.
+		int uid; 					// unique id for node.
+		int x; 						// x coord
+		int y;						// y coord
+		bool parent_truth_val;		// parent val;
 
 		unordered_map<int, bool> soln;
 
@@ -22,9 +24,11 @@ class Node {
 
 		Node(){};
 
-		void init_node(Node * parent, int id, int uid, bool parent_truth_val);
+		void init_node(Node * parent, int id, int uid, bool parent_truth_val); 	// sets node characteristics.
 
-		Node * get_lh_child();
+		void set_pos(int x, int y); 										   	// sets node pos (for graphic disp)
+
+		Node * get_lh_child(); 
 		Node * get_rh_child();
 		Node * get_parent();
 

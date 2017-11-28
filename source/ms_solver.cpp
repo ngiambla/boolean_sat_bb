@@ -9,7 +9,6 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 	this->num_of_vars=num_of_vars;			//number of vars;
 
 	lb=0;
-	ub=0;
 
 	this->expr=expr;
 
@@ -21,25 +20,31 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 
 int MS_Solver::select_start() {
 	int cur_lb 		= 	10000;
-	int index 		=	1;				//default case.
+	int index 		=	1;				//default case;
+	unordered_map<int, bool> curr_soln;
+
+	for(int i = 1; i<=num_of_vars; ++i) {
+		curr_soln[i]=true;
+		curr_soln[-i]=false;
+	}
 
 	LOG(INFO) << "~ Selecting Start ~";
 	for(int i = 1 ; i<=num_of_vars; ++i) {
-		unordered_map<int, bool> var_to_bool_map; 
+		unordered_map<int, bool> var_to_bool_map=curr_soln;
 
 		var_to_bool_map[i]	=	true;
 		var_to_bool_map[-i]	=	false;
 
-		if(expr.eval_expression(var_to_bool_map)<cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
+		if(expr.eval_expression_neg(var_to_bool_map)<cur_lb) {
+			cur_lb=expr.eval_expression_neg(var_to_bool_map);
 			index=i;
 		}
 
 		var_to_bool_map[i]	=	false;
 		var_to_bool_map[-i]	=	true;
 
-		if(expr.eval_expression(var_to_bool_map)<cur_lb) {
-			cur_lb=expr.eval_expression(var_to_bool_map);
+		if(expr.eval_expression_neg(var_to_bool_map)<cur_lb) {
+			cur_lb=expr.eval_expression_neg(var_to_bool_map);
 			index=i;
 		}
 	}
@@ -53,29 +58,88 @@ int MS_Solver::select_start() {
 }
 
 
+
+double compute_variance(vector< vector<int> > clauses, int num_of_vars) {
+	unordered_map<int, int> var_count;
+	for(vector<int> clause : clauses) {
+		for(int var: clause) {
+			if(var < 0) {
+				int tvar=var*-1;
+				if(var_count.count(tvar)>0) {
+					var_count[tvar]++;
+				} else {
+					var_count[tvar]=1;
+				}
+			} else {
+				if(var_count.count(var)>0) {
+					var_count[var]++;
+				} else {
+					var_count[var]=1;
+				}
+			}
+		}
+	}
+	double avg=0;
+	for(const auto& key : var_count) {
+		avg+=key.second;
+	}
+	avg=avg/num_of_vars;
+	double variance=0;
+	for(const auto& key : var_count) {
+		variance+=pow(key.second,2);
+	}	
+	variance=variance/num_of_vars - avg;
+	return pow(variance, 0.5);
+}
+
+
+
 void MS_Solver::solve() {
-	bool searching	=	true;		// signifies if we can finish exploring the tree.
-	int cur_lvl		=	0; 			// holds the current level during exploration.
-	
-	int cur_uid 	= 	1; 			// holder for unique id per node.
+	bool searching		=	true;		// signifies if we can finish exploring the tree.
+	bool high_variance	=	false;
+	int cur_lvl			=	0; 			// holds the current level during exploration.
+	int cur_uid 		= 	1; 			// holder for unique id per node.
+	int NODES_REQ		= 	8192;		// Number of Same nodes per level.
+	int THRESHOLD;
 
-	int cnt_hold	= 	0;			// if offender occurs, expand nodes at previous level.
-	bool hanging 	= 	false; 		// if we are hanging
+	auto start = std::chrono::system_clock::now();	// starting timer.
 
+	double variance = compute_variance(expr.get_vector_expression(), num_of_vars);
+	LOG(STATS) << "Standard Deviation: " << variance;
 
+	if((double)variance/num_of_vars < 0.5) {
+		high_variance=false;
+	} else {
+		high_variance=true;
+	}
+
+	THRESHOLD=max(10, 2+ THRESHOLD_T - (+num_of_vars - THRESHOLD_T));
+	LOG(STATS) << " * Initializing Timer *";
+
+	LOG(INFO) << " ~ THRESHOLD: "<< THRESHOLD;
 	vector< vector<Node *> > tree;	
 
 	unordered_map<int, int>	id_per_lvls;
 	unordered_map<int, int> uid_per_lvls;
-	unordered_map<int, int>	lvl_to_lb;
 
 	int head_id=select_start();
 
+
 	Node * HEAD 	= 	new Node;
-	Node * LAST;
-	int oid 		=	-1;			// hold the offending id.
+
+	unordered_map<int, bool> curr_soln;
+
+	for(int i = 1; i<=num_of_vars; ++i) {
+		curr_soln[i]=true;
+		curr_soln[-i]=false;
+	}
 
 	HEAD->init_node(NULL, head_id, cur_uid++,false);
+	if(!high_variance){
+		HEAD->add_var_to_soln(curr_soln);
+	}
+	lb=expr.eval_expression_neg(curr_soln);
+
 
 	vector<Node *> root;
 	root.push_back(HEAD);
@@ -94,181 +158,129 @@ void MS_Solver::solve() {
 			}
 		}
 
-		lvl_to_lb[cur_lvl]=lb;
 		id_per_lvls[cur_lvl]=next_id;
 		uid_per_lvls[cur_lvl]=cur_uid;
 
 		if(cur_lvl<num_of_vars) {
-			LOG(INFO) << "~~~~~~~~~~ LVL ["<<cur_lvl<<"] ~~~~~~~~~~";
+			if(cur_lvl<=THRESHOLD) {
+				LOG(INFO) << " ~ - Using THRESHOLD @ LVL-"<<cur_lvl;
+			} else {
+				LOG(INFO) << " ~ * Burning Tree    @ LVL-"<<cur_lvl;
+			}
 
 			for(Node * n: tree[cur_lvl]) {
+				unordered_map<int, bool> var_map=n->get_soln();
+				var_map[n->get_id()]=true;
+				var_map[-n->get_id()]=false;
+				cost = expr.eval_expression_neg(var_map);
+				if(cost < lb) {
+					lb=cost;
+				}
+					
+		
 
+				var_map=n->get_soln();
+				var_map[-n->get_id()]=true;
+				var_map[n->get_id()]=false;
+				cost = expr.eval_expression_neg(var_map);
+				if(cost < lb) {
+					lb=cost;
+				}
 
+			}
+
+			for(Node * n: tree[cur_lvl]) {
 				unordered_map<int, bool> var_map=n->get_soln();
 				
 				var_map[-(n->get_id())]=false;
 				var_map[n->get_id()]=true;
+				cost = expr.eval_expression_neg(var_map);
 
-				cost = expr.eval_expression(var_map);
-
-				LOG(INFO) << " [RH] Satisfied Clauses: "<<cost;
-				
 				Node * right_child = new Node;
-				if(cur_lvl<=THRESHOLD || hanging) {
-					LOG(DEBUG) << "oid: "<<oid<< " uid: "<<cur_uid;
-					if(oid != -1) {
-						if(oid == cur_uid) {
-							LOG(INFO) << "[RH] Skipping Offender: "<<cur_uid;
-							cur_uid++;
-						} else {
-							LOG(INFO)<<"Adding -Right [SPECIAL]";
-							right_child->init_node(n, next_id, cur_uid++, true);						
-							right_child->add_var_to_soln(var_map);					
-							n->set_rh_child(right_child);
-							next_lvl.push_back(right_child);						
-							if(cost > lb) {
-								lb=cost;
-							}
-							LAST=n;	
-						}
-					} else {
-						LOG(INFO)<<"Adding -Right [SPECIAL]";
-						right_child->init_node(n, next_id, cur_uid++, true);						
-						right_child->add_var_to_soln(var_map);					
-						n->set_rh_child(right_child);
-						next_lvl.push_back(right_child);						
-						if(cost > lb) {
-							lb=cost;
-						}
-						LAST=n;							
-					}
 
-				} else if((cost > lb && !hanging) || (cost >= lb && (int) next_lvl.size() < 0 )) {
-					LOG(INFO)<<"Adding -Right";
+				if(cur_lvl<=THRESHOLD || (cost <= lb && (int) next_lvl.size() <=NODES_REQ)) {				
 					right_child->init_node(n, next_id, cur_uid++, true);
 					right_child->add_var_to_soln(var_map);					
 					n->set_rh_child(right_child);
 					next_lvl.push_back(right_child);
-					
-					if(cost > lb) {
-						lb=cost;
-					}
-
-					LAST=n;
 				}
 
 				var_map=n->get_soln();
 
 				var_map[n->get_id()]=false;
 				var_map[-(n->get_id())]=true;
-
-				cost = expr.eval_expression(var_map);
-
-				LOG(INFO) << " [LH] Satisfied Clauses: "<<cost;
-
+				cost = expr.eval_expression_neg(var_map);
+				
 				Node * left_child = new Node;
 
-				if(cur_lvl<=THRESHOLD || hanging) {
-					LOG(DEBUG) << "oid: "<<oid<< " uid: "<<cur_uid;
-					if(oid != -1) {
-						if(oid == cur_uid) {
-							LOG(INFO) << "[LH] Skipping Offender: "<<cur_uid;
-							cur_uid++;
-						} else {
-							LOG(INFO)<<"Adding -Left [SPECIAL]";
-							left_child->init_node(n, next_id, cur_uid++, false);
-							left_child->add_var_to_soln(var_map);					
-							n->set_lh_child(left_child);
-							next_lvl.push_back(left_child);
-							if(cost > lb) {
-								lb=cost;
-							}
-							LAST=n;
-						}
-					} else {
-						LOG(INFO)<<"Adding -Left [SPECIAL]";
-						left_child->init_node(n, next_id, cur_uid++, false);
-						left_child->add_var_to_soln(var_map);					
-						n->set_lh_child(left_child);
-						next_lvl.push_back(left_child);
-						if(cost > lb) {
-							lb=cost;
-						}
-						LAST=n;
-					}
-				} else if((cost > lb && !hanging) || (cost >= lb && (int) next_lvl.size() < 0 )) {
-					LOG(INFO)<<"Adding -Left";
+				if( cur_lvl<=THRESHOLD || (cost <= lb && (int) next_lvl.size() <=NODES_REQ)) {
 					left_child->init_node(n, next_id, cur_uid++, false);
 					left_child->add_var_to_soln(var_map);					
 					n->set_lh_child(left_child);
 					next_lvl.push_back(left_child);
-					if(cost > lb) {
-						lb=cost;
-					}
-					LAST=n;
 				}
+			}
+			if(high_variance && cur_lvl>THRESHOLD) {
+				LOG(INFO) << "..-* [done]";
+				for(Node * n: tree[cur_lvl]) {
+					unordered_map<int, bool> var_map=n->get_soln();
+					
+					var_map[-(n->get_id())]=false;
+					var_map[n->get_id()]=true;
+					cost = expr.eval_expression_neg(var_map);
 
-			} 
+					Node * right_child = new Node;
+
+					if(cur_lvl<=THRESHOLD || ((cost+1 >= lb ) && (int) next_lvl.size() <=NODES_REQ)) {				
+						right_child->init_node(n, next_id, cur_uid++, true);
+						right_child->add_var_to_soln(var_map);					
+						n->set_rh_child(right_child);
+						next_lvl.push_back(right_child);
+					}
+
+					var_map=n->get_soln();
+
+					var_map[n->get_id()]=false;
+					var_map[-(n->get_id())]=true;
+					cost = expr.eval_expression_neg(var_map);
+					
+					Node * left_child = new Node;
+
+					if( cur_lvl<=THRESHOLD || ((cost+1 >= lb  ) && (int) next_lvl.size() <=NODES_REQ)) {
+						left_child->init_node(n, next_id, cur_uid++, false);
+						left_child->add_var_to_soln(var_map);					
+						n->set_lh_child(left_child);
+						next_lvl.push_back(left_child);
+					}
+				}				
+			}
 		}
-		
-
-		if(cnt_hold==0){
-			hanging=false;	
-		}	
 		
 		if(cur_lvl==num_of_vars) {
 			LOG(INFO) << "Exiting Search..";
 			searching=false;
 		} else {
-			if(next_lvl.size() > 0 ) {
-				tree.push_back(next_lvl);
-				if(cnt_hold>0){
-					cnt_hold-=1;
-				}
-				++cur_lvl;
-				vars_used_map[next_id]=true;
-				oid=-1;
-
-			} else {
-				printf("\n");
-				LOG(WARNING) << "[!] -- Issue Found at ["<< cur_lvl <<"]";
-				LOG(WARNING) << "~ Deleting Last (1) Tree Entries.";
-				LOG(WARNING) << "~ Offending Node: ["<<LAST->get_uid()<<"]";
-				
-				oid=LAST->get_uid();
-
-				for(int i=0; i<1 ; ++i) {
-					tree.erase(tree.end());
-				}
-				cur_lvl-=1;
-
-				LOG(WARNING) << "~ Lower Bound: "<< lb;
-				LOG(WARNING) << "~ Resetting Lower Bound.";
-				lb=lvl_to_lb[cur_lvl];
-
-				LOG(WARNING) << "~ Rolling Back UID.";
-				cur_uid=uid_per_lvls[cur_lvl];
-				LOG(WARNING) << "cur_uid: "<<cur_uid;
-				vars_used_map[id_per_lvls[cur_lvl]]=false;
-				hanging=true;
-				cnt_hold+=1;
-				LOG(WARNING) << "+-- reverting.";
-				cin.ignore();
+			tree.push_back(next_lvl);
+			if(NODES_REQ>=128 && cur_lvl>THRESHOLD){
+				NODES_REQ/=2;
 			}
+			++cur_lvl;
+			vars_used_map[next_id]=true;
 		}
-		//cin.ignore();
 	}
 
-	LOG(INFO) << "Tree Found";	
+	LOG(INFO) << "Tree Found";
+	auto end = std::chrono::system_clock::now();	
+	
 	int max=0;
 	int index=0;
 	for(int i=0; i< (int)tree[cur_lvl].size(); ++i) {
-		if(expr.eval_expression(tree[cur_lvl][i]->get_soln()) > max) {
+		if(expr.eval_expression(tree[cur_lvl][i]->get_soln()) > max && (int) tree[cur_lvl][i]->get_soln().size() == num_of_vars) {
 			max=expr.eval_expression(tree[cur_lvl][i]->get_soln());
 			index=i;
 		}
 	}
-	LOG(INFO) << "Satisfied Clauses: "<<expr.eval_expression(tree[cur_lvl][index]->get_soln())<<"/"<<num_of_clauses;
+
 	for(const auto& key : tree[cur_lvl][index]->get_soln()) {
 		if(key.first > 0){
 			if(key.second) {
@@ -278,6 +290,19 @@ void MS_Solver::solve() {
 			}
 		}
 	}
+	
+	LOG(STATS) << " ~-> Satisfied Clauses: "<<expr.eval_expression(tree[cur_lvl][index]->get_soln())<<"/"<<num_of_clauses;
+	int nodes_visited=0;
+	for(int i = 0; i < (int)tree.size(); ++i) {
+		for(int j = 0; j < (int)tree[i].size(); ++j) {
+			++nodes_visited;
+			delete tree[i][j];
+		}
+	}
+
+	LOG(STATS) << " ~-> Visited: "<<nodes_visited<< "/"<<pow(2, num_of_vars);
+	chrono::duration<double> elapsed_seconds = end-start;
+	LOG(STATS) << " ~-> Time Elapsed: " << elapsed_seconds.count() << " seconds.";
 }
 
 

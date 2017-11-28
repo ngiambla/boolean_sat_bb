@@ -15,8 +15,8 @@ void read_in_expression(char * filename) {
 	bool first_line_read	=	false;
 	short delim_count		=	0;
 	
-	int num_of_clauses;
-	int num_of_vars;
+	int num_of_clauses=0;
+	int num_of_vars=0;
 	
 	vector< vector<int> > clauses;
 
@@ -25,7 +25,7 @@ void read_in_expression(char * filename) {
 
 
 	if(fp) {
-		LOG(INFO) << "Reading. --Generating Boolean Expression.";
+		LOG(INFO) << "Reading file.";
 		
 		while(fgets(line,128,fp) != NULL) {
 				char * token = strtok(line, " ");
@@ -35,13 +35,13 @@ void read_in_expression(char * filename) {
 					if(!first_line_read && delim_count < 2) {
 						if(delim_count==1) {
 							num_of_clauses=atoi(token);
-							LOG(INFO) << "Number of clauses["<<num_of_clauses<<"]";
+							LOG(INFO) << "Number of clauses:     --> ["<<num_of_clauses<<"]";
 							
 							first_line_read=true;
 
 						} else {
 							num_of_vars=atoi(token);
-							LOG(INFO) << "Number of variables["<<num_of_vars<<"]";
+							LOG(INFO) << "Number of variables:   --> ["<<num_of_vars<<"]";
 						}
 					} else {
 						if(atoi(token)==0) {
@@ -61,25 +61,11 @@ void read_in_expression(char * filename) {
 		exit(-1);
 	}
 
-	LOG(INFO) << "Confirming file read was successful: ";
-	for(vector<int> v : clauses ) {
-		printf("Clause: ");
-		for(int var : v) {
-			printf(" [%2d]",var);
-		}
-		printf("\n");
-	}
-	LOG(INFO) << "Inserting into expression.";
+	LOG(INFO) << "Forming into expression.";
 
 	expr.init_expression(clauses);
-
-	unordered_map<int, bool> vars;
-	for(int i=1; i<=num_of_vars; ++i) {
-		vars[i]=true;
-	}
-	LOG(INFO) << "EVAL "<<expr.eval_expression(vars);
 	
-	LOG(INFO) << "Initializing Solver.";
+	LOG(INFO) << "Initializing Solver.\n";
 
 	mss.init_solver(expr, num_of_clauses, num_of_vars);
 

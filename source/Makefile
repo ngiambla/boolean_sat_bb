@@ -4,7 +4,7 @@ PLATFORM = X11
 
 EXE = ms_util
 HDR = log.h
-FLAGS = -g -Wall -D$(PLATFORM) -std=c++11
+FLAGS = -g -Wall -D$(PLATFORM) -std=c++11 -O3
 CUR_DIR = $(shell pwd)
 UNAME := $(shell uname)
 

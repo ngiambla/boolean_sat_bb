@@ -13,7 +13,7 @@
 
 inline std::string NowTime();
 
-enum LogLevel {ERROR, WARNING, INFO, DEBUG };
+enum LogLevel {ERROR, WARNING, INFO, DEBUG, STATS };
 
 template <typename T>
 class Log
@@ -41,7 +41,7 @@ template <typename T>
 std::ostringstream& Log<T>::Get(LogLevel level) {
     os << "[" << ToString(level);
     os << "] [" << NowTime() << "]: ";
-    os << std::string(level > DEBUG ? level - DEBUG : 0, '\t');
+    os << std::string(level > STATS ? level - STATS : 0, '\t');
     return os;
 }
 
@@ -54,18 +54,20 @@ Log<T>::~Log() {
 
 template <typename T>
 LogLevel& Log<T>::ReportingLevel() {
-    static LogLevel reportingLevel = DEBUG;
+    static LogLevel reportingLevel = STATS;
     return reportingLevel;
 }
 
 template <typename T>
 std::string Log<T>::ToString(LogLevel level) {
-	static const char* const buffer[] = {"ERROR", "WARNING", "INFO", "DEBUG"};
+	static const char* const buffer[] = {"ERROR", "WARNING", "INFO", "DEBUG", "STATS"};
     return buffer[level];
 }
 
 template <typename T>
 LogLevel Log<T>::FromString(const std::string& level) {
+    if (level == "STATS")
+        return STATS;
     if (level == "DEBUG")
         return DEBUG;
     if (level == "INFO")
@@ -104,7 +106,7 @@ inline void Output_To_FILE::Output(const std::string& msg)
 class FILELOG_DECLSPEC pLog : public Log<Output_To_FILE> {};
 
 #ifndef LOG_MAX_LEVEL
-#define LOG_MAX_LEVEL DEBUG
+#define LOG_MAX_LEVEL STATS
 #endif
 
 #define LOG(level) \

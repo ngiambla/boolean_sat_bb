@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream> 
+#include <chrono>
+#include <ctime>
 #include <math.h>
 #include <vector>
 #include <map>
@@ -15,9 +17,10 @@ using namespace std;
 
 #define SUCCESS 	1
 #define OKAY 		0
-#define FAIL    	-1
+#define FAIL    		-1
 
-#define THRESHOLD   2
+#define THRESHOLD_T   	15
+#define MIN_THRESH 		10
 
 
 
