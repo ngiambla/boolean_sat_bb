@@ -12,6 +12,9 @@ class MS_Solver {
 
 		Expression expr;
 
+		int soln_idx;
+		int soln_lvl;
+
 		int num_of_clauses;
 		int num_of_vars;
 
@@ -26,7 +29,8 @@ class MS_Solver {
 		void solve();
 		vector< vector<Node *> > grab_soln_tree();
 		void cut_tree();
-
+		int get_soln_idx();
+		int get_soln_lvl();
 };
 
 #endif

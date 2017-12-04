@@ -121,13 +121,15 @@ int main(int argc, char * argv[]) {
 
 void drawscreen(void) {
 
+	char buf[128];
+
 	set_draw_mode (DRAW_NORMAL);
 	clearscreen();
 	setlinewidth (2);
 	setlinestyle (SOLID);
 
 	setcolor(DARKGREY);
-	for(int i=1; i<tree_plot.size()-1; ++i) {
+	for(int i=1; i<tree_plot.size(); ++i) {
 		for(int j=0; j<tree_plot[i].size(); ++j) {
 			for(Node *n : tree_plot[i-1]){
 				if(n->get_uid()==tree_plot[i][j]->get_parent()->get_uid()) {
@@ -137,13 +139,42 @@ void drawscreen(void) {
 		}
 	}
 
-	for(int i=0; i<tree_plot.size()-1; ++i) {
+	for(int i=0; i<tree_plot.size(); ++i) {
+		bool is_set=false;
 		for(int j=0; j<tree_plot[i].size(); ++j) {
-			setcolor(BLUE);
-			drawarc(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), 6, 0, 360);	
-			setcolor(GREEN);
-			fillarc(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), 6.3, 0, 360);
+			if(tree_plot[i][j]->get_id() != 0) {
+				if(!is_set) {
+					setcolor(BLACK);
+					sprintf(buf, "[%d]", tree_plot[i][j]->get_id());
+					drawtext(tree_plot[i][j]->get_x()+100, tree_plot[i][j]->get_y(), buf, 100);
+					is_set=true;
+				}
+				setcolor(BLUE);
+				drawarc(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), 6, 0, 360);	
+				setcolor(MAGENTA);
+				fillarc(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), 6.3, 0, 360);
+			} else {
+				setcolor(CYAN);
+				fillrect(tree_plot[i][j]->get_x()-4, tree_plot[i][j]->get_y()-4, tree_plot[i][j]->get_x()+4, tree_plot[i][j]->get_y()+4);
+			}
+
 		}
+	}
+
+	Node * CUR=tree_plot[mss.get_soln_lvl()][mss.get_soln_idx()];
+	while(CUR != NULL) {
+			setcolor(RED);
+			if(CUR->get_parent() != NULL) {
+				drawline(CUR->get_x(), CUR->get_y(), CUR->get_parent()->get_x(), CUR->get_parent()->get_y());
+			}
+			if(CUR->get_id() != 0){
+				setcolor(GREEN);
+				fillarc(CUR->get_x(), CUR->get_y(), 7, 0, 360);
+			} else {
+				setcolor(CYAN);
+				fillrect(CUR->get_x()-4, CUR->get_y()-4, CUR->get_x()+4, CUR->get_y()+4);
+			}
+			CUR=CUR->get_parent();	
 	}
 
 

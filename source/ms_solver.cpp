@@ -145,7 +145,7 @@ void MS_Solver::solve() {
 	}
 	lb=expr.eval_expression_neg(curr_soln);
 	HEAD->set_pos(x_pos, y_pos);
-	y_pos+=200;
+	y_pos+=50;
 
 
 	vector<Node *> root;
@@ -282,8 +282,8 @@ void MS_Solver::solve() {
 				NODES_REQ/=2;
 			}
 			++cur_lvl;
-			y_pos+=200;
-			if(x_incr > 4) {
+			y_pos+=50;
+			if(x_incr > 5) {
 				x_incr/=2;
 			}
 
@@ -297,11 +297,14 @@ void MS_Solver::solve() {
 	int max=0;
 	int index=0;
 	for(int i=0; i< (int)tree[cur_lvl].size(); ++i) {
-		if(expr.eval_expression(tree[cur_lvl][i]->get_soln()) > max && (int) tree[cur_lvl][i]->get_soln().size() == num_of_vars) {
+		if(expr.eval_expression(tree[cur_lvl][i]->get_soln()) > max && (int) tree[cur_lvl][i]->get_soln().size() == 2*num_of_vars) {
 			max=expr.eval_expression(tree[cur_lvl][i]->get_soln());
 			index=i;
 		}
 	}
+
+	soln_idx=index;
+	soln_lvl=cur_lvl;
 
 	for(const auto& key : tree[cur_lvl][index]->get_soln()) {
 		if(key.first > 0){
@@ -341,4 +344,12 @@ void MS_Solver::cut_tree() {
 			delete tree_t[i][j];
 		}
 	}	
+}
+
+int MS_Solver::get_soln_idx() {
+	return soln_idx;
+}
+
+int MS_Solver::get_soln_lvl() {
+	return soln_lvl;
 }
