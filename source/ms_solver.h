@@ -8,6 +8,7 @@ class MS_Solver {
 	private:
 
 		unordered_map<int, bool> vars_used_map;
+		vector< vector<Node *> > tree_t;
 
 		Expression expr;
 
@@ -23,6 +24,8 @@ class MS_Solver {
 		
 		void init_solver(Expression expr, int num_of_clauses, int num_of_vars);
 		void solve();
+		vector< vector<Node *> > grab_soln_tree();
+		void cut_tree();
 
 };
 

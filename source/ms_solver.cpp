@@ -95,11 +95,16 @@ double compute_variance(vector< vector<int> > clauses, int num_of_vars) {
 
 
 void MS_Solver::solve() {
-	bool searching		=	true;		// signifies if we can finish exploring the tree.
-	bool high_variance	=	false;
-	int cur_lvl			=	0; 			// holds the current level during exploration.
-	int cur_uid 		= 	1; 			// holder for unique id per node.
-	int NODES_REQ		= 	8192;		// Number of Same nodes per level.
+	bool searching			=	true;		// signifies if we can finish exploring the tree.
+	bool high_variance		=	false;
+	int cur_lvl				=	0; 			// holds the current level during exploration.
+	int cur_uid 			= 	1; 			// holder for unique id per node.
+	int NODES_REQ			= 	16384;		// Number of Same nodes per level.
+
+	float y_pos 			= 	0;
+	float x_pos 			= 	1000;
+	float x_incr 			= 	500;
+
 	int THRESHOLD;
 
 	auto start = std::chrono::system_clock::now();	// starting timer.
@@ -139,6 +144,8 @@ void MS_Solver::solve() {
 		HEAD->add_var_to_soln(curr_soln);
 	}
 	lb=expr.eval_expression_neg(curr_soln);
+	HEAD->set_pos(x_pos, y_pos);
+	y_pos+=200;
 
 
 	vector<Node *> root;
@@ -190,6 +197,9 @@ void MS_Solver::solve() {
 			}
 
 			for(Node * n: tree[cur_lvl]) {
+				
+				float x_pos_t = n->get_x();
+
 				unordered_map<int, bool> var_map=n->get_soln();
 				
 				var_map[-(n->get_id())]=false;
@@ -200,7 +210,8 @@ void MS_Solver::solve() {
 
 				if(cur_lvl<=THRESHOLD || (cost <= lb && (int) next_lvl.size() <=NODES_REQ)) {				
 					right_child->init_node(n, next_id, cur_uid++, true);
-					right_child->add_var_to_soln(var_map);					
+					right_child->add_var_to_soln(var_map);
+					right_child->set_pos(x_pos_t+x_incr, y_pos);					
 					n->set_rh_child(right_child);
 					next_lvl.push_back(right_child);
 				}
@@ -215,7 +226,8 @@ void MS_Solver::solve() {
 
 				if( cur_lvl<=THRESHOLD || (cost <= lb && (int) next_lvl.size() <=NODES_REQ)) {
 					left_child->init_node(n, next_id, cur_uid++, false);
-					left_child->add_var_to_soln(var_map);					
+					left_child->add_var_to_soln(var_map);
+					left_child->set_pos(x_pos_t-x_incr, y_pos);					
 					n->set_lh_child(left_child);
 					next_lvl.push_back(left_child);
 				}
@@ -265,6 +277,9 @@ void MS_Solver::solve() {
 				NODES_REQ/=2;
 			}
 			++cur_lvl;
+			y_pos+=200;
+			x_incr/=2;
+
 			vars_used_map[next_id]=true;
 		}
 	}
@@ -295,10 +310,13 @@ void MS_Solver::solve() {
 	int nodes_visited=0;
 	for(int i = 0; i < (int)tree.size(); ++i) {
 		for(int j = 0; j < (int)tree[i].size(); ++j) {
-			++nodes_visited;
-			delete tree[i][j];
+			if(i<(int)tree.size()-1) {
+				++nodes_visited;
+			}
 		}
 	}
+
+	tree_t=tree;
 
 	LOG(STATS) << " ~-> Visited: "<<nodes_visited<< "/"<<pow(2, num_of_vars);
 	chrono::duration<double> elapsed_seconds = end-start;
@@ -306,3 +324,14 @@ void MS_Solver::solve() {
 }
 
 
+vector< vector<Node *> > MS_Solver::grab_soln_tree() {
+	return tree_t;
+}
+
+void MS_Solver::cut_tree() {
+	for(int i = 0; i < (int)tree_t.size(); ++i) {
+		for(int j = 0; j < (int)tree_t[i].size(); ++j) {
+			delete tree_t[i][j];
+		}
+	}	
+}

@@ -8,6 +8,13 @@ char cmd_list[]="Usage ./ms_util -file [filename]";
 
 Expression expr;
 MS_Solver mss;
+vector< vector<Node *> > tree_plot;
+
+// function references for graphics.
+void drawscreen(void);
+void act_on_button_press (float x, float y);
+void act_on_mouse_move (float x, float y);
+void act_on_key_press (char c);
 
 void read_in_expression(char * filename) {
 	FILE *fp;
@@ -92,6 +99,57 @@ int main(int argc, char * argv[]) {
 	read_in_expression(file);
 	mss.solve();
 
+	tree_plot = mss.grab_soln_tree();
+
+	init_graphics("MS_Solver", WHITE);
+
+	init_world(0,0, 2000, 4000);
+	
+	destroy_button("Proceed");
+	destroy_button("PostScript");
+
+	clearscreen();
+
+	update_message("--- Solution Tree ---");
+	drawscreen();
+  	event_loop(act_on_button_press, NULL, NULL, drawscreen); 
+
+	mss.cut_tree();
 
 	return SUCCESS;
+}
+
+void drawscreen(void) {
+
+	set_draw_mode (DRAW_NORMAL);
+	clearscreen();
+	setlinewidth (2);
+	setlinestyle (SOLID);
+
+	setcolor(DARKGREY);
+	for(int i=1; i<tree_plot.size()-1; ++i) {
+		for(int j=0; j<tree_plot[i].size(); ++j) {
+			for(Node *n : tree_plot[i-1]){
+				if(n->get_uid()==tree_plot[i][j]->get_parent()->get_uid()) {
+					drawline(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), n->get_x(), n->get_y());
+				}
+			}
+		}
+	}
+
+	for(int i=0; i<tree_plot.size()-1; ++i) {
+		for(int j=0; j<tree_plot[i].size(); ++j) {
+			setcolor(BLUE);
+			drawarc(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), 6, 0, 360);	
+			setcolor(GREEN);
+			fillarc(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), 6.3, 0, 360);
+		}
+	}
+
+
+}
+
+void act_on_button_press (float x, float y) {
+
+
 }

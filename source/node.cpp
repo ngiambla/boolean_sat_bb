@@ -59,7 +59,15 @@ bool Node::which_parent_side() {
 	return parent_truth_val;
 }
 
-void Node::set_pos(int x, int y) {
+void Node::set_pos(float x, float y) {
 	this->x=x;
 	this->y=y;
+}
+
+float Node::get_x() {
+	return x;
+}
+
+float Node::get_y() {
+	return y;
 }
