@@ -235,6 +235,9 @@ void MS_Solver::solve() {
 			if(high_variance && cur_lvl>THRESHOLD) {
 				LOG(INFO) << "..-* [done]";
 				for(Node * n: tree[cur_lvl]) {
+
+					float x_pos_t = n->get_x();
+
 					unordered_map<int, bool> var_map=n->get_soln();
 					
 					var_map[-(n->get_id())]=false;
@@ -245,7 +248,8 @@ void MS_Solver::solve() {
 
 					if(cur_lvl<=THRESHOLD || ((cost+1 >= lb ) && (int) next_lvl.size() <=NODES_REQ)) {				
 						right_child->init_node(n, next_id, cur_uid++, true);
-						right_child->add_var_to_soln(var_map);					
+						right_child->add_var_to_soln(var_map);
+						right_child->set_pos(x_pos_t+x_incr, y_pos);					
 						n->set_rh_child(right_child);
 						next_lvl.push_back(right_child);
 					}
@@ -260,7 +264,8 @@ void MS_Solver::solve() {
 
 					if( cur_lvl<=THRESHOLD || ((cost+1 >= lb  ) && (int) next_lvl.size() <=NODES_REQ)) {
 						left_child->init_node(n, next_id, cur_uid++, false);
-						left_child->add_var_to_soln(var_map);					
+						left_child->add_var_to_soln(var_map);
+						left_child->set_pos(x_pos_t-x_incr, y_pos);						
 						n->set_lh_child(left_child);
 						next_lvl.push_back(left_child);
 					}
@@ -278,7 +283,9 @@ void MS_Solver::solve() {
 			}
 			++cur_lvl;
 			y_pos+=200;
-			x_incr/=2;
+			if(x_incr > 4) {
+				x_incr/=2;
+			}
 
 			vars_used_map[next_id]=true;
 		}
