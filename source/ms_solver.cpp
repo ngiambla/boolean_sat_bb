@@ -162,6 +162,7 @@ void MS_Solver::solve() {
 		vector<Node *> next_lvl;
 		int next_id=0;
 		int cost;
+		bool should_red=true;
 
 		for(const auto& key : vars_used_map) {
 			if(!key.second) {
@@ -180,6 +181,7 @@ void MS_Solver::solve() {
 				LOG(INFO) << " ~ * Burning Tree    @ LVL-"<<cur_lvl;
 			}
 
+			int old_cost=lb;
 			for(Node * n: tree[cur_lvl]) {
 				unordered_map<int, bool> var_map=n->get_soln();
 				var_map[n->get_id()]=true;
@@ -199,6 +201,9 @@ void MS_Solver::solve() {
 					lb=cost;
 				}
 
+			}
+			if(old_cost==lb) {
+				should_red=false;
 			}
 
 			for(Node * n: tree[cur_lvl]) {
@@ -283,8 +288,10 @@ void MS_Solver::solve() {
 			searching=false;
 		} else {
 			tree.push_back(next_lvl);
-			if(NODES_REQ>=256 && cur_lvl>THRESHOLD){
-				NODES_REQ/=2;
+			if(NODES_REQ>=128 && cur_lvl>THRESHOLD){
+				if(should_red || is_opt){
+					NODES_REQ/=2;
+				}
 			}
 			++cur_lvl;
 			y_pos+=(50);
@@ -312,6 +319,7 @@ void MS_Solver::solve() {
 	soln_idx=index;
 	soln_lvl=cur_lvl;
 
+	LOG(INFO) << "---";
 	for(const auto& key : tree[cur_lvl][index]->get_soln()) {
 		if(key.first > 0){
 			if(key.second) {
