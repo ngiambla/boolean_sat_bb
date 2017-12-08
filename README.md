@@ -52,7 +52,7 @@ t4.cnf
 t8.cnf
 ```
 
-And `-opt` defines if this algorithm is to run with an optimization on (`y`) or off (`n`). The optimization performs a heuristic based measured for discovering solving the MAX-SAT problem. 
+And `-opt` defines if this algorithm is to be run with an optimization on (`y`) or off (`n`). The optimization performs a heuristic based measure for solving a specified MAX-SAT problem. 
 
 ## Author ##
 
