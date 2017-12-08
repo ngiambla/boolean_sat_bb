@@ -4,7 +4,7 @@
 #include "graphics.h"
 #include "ms_solver.h"
 
-char cmd_list[]="Usage ./ms_util -file [filename]";
+char cmd_list[]="Usage ./ms_util -file [filename] -opt [y|n]";
 
 Expression expr;
 MS_Solver mss;
@@ -82,21 +82,37 @@ void read_in_expression(char * filename) {
 int main(int argc, char * argv[]) {
 
 	char file[128];
+	bool opt_on=false;
 
-	if (argc < 3) {
+	if (argc < 5) {
 		printf("%s\n", cmd_list);
 		return FAIL;
 	}
 
-	if(strcmp(argv[1], "-file")!=0) {
+	if(strcmp(argv[1], "-file") != 0) {
 		printf("%s\n", cmd_list);
 		return FAIL;		
+	}
+
+	if(strcmp(argv[3], "-opt") != 0) {
+		printf("%s\n", cmd_list);
+		return FAIL;
+	}
+
+	if(strcmp(argv[4], "y") == 0 || strcmp(argv[4], "Y") == 0 || strcmp(argv[4], "n") == 0 || strcmp(argv[4], "N") == 0) {
+		if(strcmp(argv[4], "y") == 0 || strcmp(argv[4], "Y") == 0){
+			opt_on=true;
+		}
+	} else {
+		printf("%s\n", cmd_list);
+		return FAIL;
 	}
 
 	strcpy(file, "../inputs/");
 	strcat(file, argv[2]);
 
 	read_in_expression(file);
+	mss.set_optimal(opt_on);
 	mss.solve();
 
 	tree_plot = mss.grab_soln_tree();
@@ -129,8 +145,8 @@ void drawscreen(void) {
 	setlinestyle (SOLID);
 
 	setcolor(DARKGREY);
-	for(int i=1; i<tree_plot.size(); ++i) {
-		for(int j=0; j<tree_plot[i].size(); ++j) {
+	for(int i=1; i< (int)tree_plot.size(); ++i) {
+		for(int j=0; j< (int)tree_plot[i].size(); ++j) {
 			for(Node *n : tree_plot[i-1]){
 				if(n->get_uid()==tree_plot[i][j]->get_parent()->get_uid()) {
 					drawline(tree_plot[i][j]->get_x(), tree_plot[i][j]->get_y(), n->get_x(), n->get_y());
@@ -139,9 +155,9 @@ void drawscreen(void) {
 		}
 	}
 
-	for(int i=0; i<tree_plot.size(); ++i) {
+	for(int i=0; i< (int)tree_plot.size(); ++i) {
 		bool is_set=false;
-		for(int j=0; j<tree_plot[i].size(); ++j) {
+		for(int j=0; j< (int)tree_plot[i].size(); ++j) {
 			if(tree_plot[i][j]->get_id() != 0) {
 				if(!is_set) {
 					setcolor(BLACK);

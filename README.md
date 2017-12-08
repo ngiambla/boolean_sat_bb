@@ -29,7 +29,30 @@ Once there, enter the following commands:
 ```
 
 
+## Execution Instructions ##
 
+To execute this project, please ensure that a terminal process is running and is currently in the source directory of this project. Enter this command:
+
+```bash
+~$ ./ms_util -file [filename] -opt [y|n]
+```
+
+Where:
+
+`filename` can either be:
+
+```bash
+1.cnf
+2.cnf
+3.cnf
+4.cnf
+t.cnf
+t3.cnf
+t4.cnf
+t8.cnf
+```
+
+And `-opt` defines if this algorithm is to run with an optimization on (`y`) or off (`n`). The optimization performs a heuristic based measured for discovering solving the MAX-SAT problem. 
 
 ## Author ##
 

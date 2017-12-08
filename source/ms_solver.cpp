@@ -7,6 +7,7 @@
 void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars) {
 	this->num_of_clauses=num_of_clauses;	//number of clauses
 	this->num_of_vars=num_of_vars;			//number of vars;
+	this->is_opt=false;
 
 	lb=0;
 
@@ -17,6 +18,10 @@ void MS_Solver::init_solver(Expression expr, int num_of_clauses, int num_of_vars
 	}
 }
 
+void MS_Solver::set_optimal(bool is_opt) {
+	this->is_opt=is_opt;
+	LOG(INFO) << " ~ Running with Optimization: "<<this->is_opt;
+}
 
 int MS_Solver::select_start() {
 	int cur_lb 		= 	10000;
@@ -232,7 +237,7 @@ void MS_Solver::solve() {
 					next_lvl.push_back(left_child);
 				}
 			}
-			if(high_variance && cur_lvl>THRESHOLD) {
+			if( (high_variance || !is_opt) && cur_lvl>=THRESHOLD) {
 				LOG(INFO) << "..-* [done]";
 				for(Node * n: tree[cur_lvl]) {
 
@@ -278,11 +283,12 @@ void MS_Solver::solve() {
 			searching=false;
 		} else {
 			tree.push_back(next_lvl);
-			if(NODES_REQ>=128 && cur_lvl>THRESHOLD){
+			if(NODES_REQ>=256 && cur_lvl>THRESHOLD){
 				NODES_REQ/=2;
 			}
 			++cur_lvl;
-			y_pos+=50;
+			y_pos+=(50);
+
 			if(x_incr > 5) {
 				x_incr/=2;
 			}

@@ -19,6 +19,7 @@ class MS_Solver {
 		int num_of_vars;
 
 		int lb;			//lower bound
+		bool is_opt;
 
 		int select_start();
 
@@ -27,6 +28,7 @@ class MS_Solver {
 		
 		void init_solver(Expression expr, int num_of_clauses, int num_of_vars);
 		void solve();
+		void set_optimal(bool is_opt);
 		vector< vector<Node *> > grab_soln_tree();
 		void cut_tree();
 		int get_soln_idx();
